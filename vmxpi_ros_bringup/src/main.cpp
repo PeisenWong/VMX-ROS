@@ -86,7 +86,7 @@ public:
         stop_motors_client = nh->serviceClient<std_srvs::Trigger>("titan/stop_motors");
 
         // Subscribe to cmd_vel topic
-        vel_sub = nh->subscribe("cmd_vel", 10, &Robot::cmdVelCallback, this);
+        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
 
         // Initialize last_cmd_time
         last_cmd_time = std::chrono::steady_clock::now();
@@ -154,7 +154,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 20 Hz control loop
+        ros::Rate rate(10); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -173,6 +173,13 @@ public:
 
                 // Publish motor commands
                 publish_motors();
+
+                // Publish dummy twist message
+                geometry_msgs::Twist msg;
+                msg.linear.x = cmd_linear_x;
+                msg.linear.y = cmd_linear_y;
+                msg.angular.z = cmd_angular.z;
+                dummyPublish.pub(msg);
             }
             rate.sleep();
         }
