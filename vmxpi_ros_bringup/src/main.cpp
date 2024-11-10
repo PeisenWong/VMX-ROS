@@ -178,8 +178,8 @@ public:
                 geometry_msgs::Twist msg;
                 msg.linear.x = cmd_linear_x;
                 msg.linear.y = cmd_linear_y;
-                msg.angular.z = cmd_angular.z;
-                dummyPublish.pub(msg);
+                msg.angular.z = cmd_angular_z;
+                dummyPublish.publish(msg);
             }
             rate.sleep();
         }
