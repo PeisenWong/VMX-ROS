@@ -9,7 +9,6 @@
 #include <cmath>
 #include <mutex>
 #include <thread>
-#include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/Twist.h"
 
 std::mutex command_mutex;  // Protects shared data
@@ -87,7 +86,7 @@ public:
         stop_motors_client = nh->serviceClient<std_srvs::Trigger>("titan/stop_motors");
 
         // Subscribe to cmd_vel topic
-        vel_sub = nh->subscribe<geometry_msgs::Vector3>("cmd_vel", 10, &Robot::cmdVelCallback, this);
+        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
 
         // Initialize last_cmd_time
         last_cmd_time = std::chrono::steady_clock::now();
@@ -96,13 +95,13 @@ public:
         control_loop_thread = std::thread(&Robot::controlLoop, this);
     }
 
-    void cmdVelCallback(const geometry_msgs::Vector3::ConstPtr& msg) {
+    void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg) {
         std::lock_guard<std::mutex> lock(command_mutex);
         last_cmd_time = std::chrono::steady_clock::now();
 
-        cmd_linear_x = msg->x;
-        cmd_linear_y = msg->y;
-        cmd_angular_z = msg->z;
+        cmd_linear_x = msg->linear.x;
+        cmd_linear_y = msg->linear.y;
+        cmd_angular_z = msg->angular.z;
     }
 
     void holonomicDrive(double x, double y, double z) {
