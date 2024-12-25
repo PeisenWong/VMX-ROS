@@ -58,7 +58,6 @@ private:
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
-    ros::Publisher dummyPublish;
 
     ros::Subscriber motor0_dist, motor1_dist, motor2_dist, angle_sub, yawAngle_sub;
     ros::Subscriber enc0_sub, enc1_sub, enc2_sub;
@@ -72,7 +71,6 @@ public:
         motor2_dist = nh->subscribe("titan/encoder2/distance", 1, motor2Callback);
         angle_sub = nh->subscribe("navx/angle", 1, angleCallback);
         yawAngle_sub = nh->subscribe("navx/yaw", 1, yawCallback);
-        dummyPublish = nh->advertise<geometry_msgs::Twist>("dummy/cmd_vel", 1);
 
         enc0_sub = nh->subscribe("titan/encoder0/count", 1, enc0Callback);
         enc1_sub = nh->subscribe("titan/encoder1/count", 1, enc1Callback);
@@ -86,7 +84,7 @@ public:
         stop_motors_client = nh->serviceClient<std_srvs::Trigger>("titan/stop_motors");
 
         // Subscribe to cmd_vel topic
-        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
+        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 20, &Robot::cmdVelCallback, this);
 
         // Initialize last_cmd_time
         last_cmd_time = std::chrono::steady_clock::now();
@@ -154,7 +152,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(5); // 10 Hz control loop
+        ros::Rate rate(20); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -173,13 +171,6 @@ public:
 
                 // Publish motor commands
                 publish_motors();
-
-                // Publish dummy twist message
-                geometry_msgs::Twist msg;
-                msg.linear.x = cmd_linear_x;
-                msg.linear.y = cmd_linear_y;
-                msg.angular.z = cmd_angular_z;
-                dummyPublish.publish(msg);
             }
             rate.sleep();
         }
@@ -203,7 +194,7 @@ int main(int argc, char** argv) {
 
     VMXPi vmx(true, (uint8_t)50);
 
-    ros::AsyncSpinner spinner(4);
+    ros::AsyncSpinner spinner(1);
     spinner.start();
 
     // Initialize ROS wrappers
