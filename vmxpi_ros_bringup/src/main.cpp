@@ -84,7 +84,7 @@ public:
         stop_motors_client = nh->serviceClient<std_srvs::Trigger>("titan/stop_motors");
 
         // Subscribe to cmd_vel topic
-        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 20, &Robot::cmdVelCallback, this);
+        vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
 
         // Initialize last_cmd_time
         last_cmd_time = std::chrono::steady_clock::now();
@@ -152,7 +152,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(20); // 10 Hz control loop
+        ros::Rate rate(10); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 
     VMXPi vmx(true, (uint8_t)50);
 
-    ros::AsyncSpinner spinner(1);
+    ros::AsyncSpinner spinner(4);
     spinner.start();
 
     // Initialize ROS wrappers
