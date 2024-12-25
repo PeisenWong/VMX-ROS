@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 
     VMXPi vmx(true, (uint8_t)50);
 
-    ros::AsyncSpinner spinner(4);
+    ros::AsyncSpinner spinner(2);
     spinner.start();
 
     // Initialize ROS wrappers
