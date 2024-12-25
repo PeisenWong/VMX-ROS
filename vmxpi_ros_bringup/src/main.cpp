@@ -154,7 +154,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 10 Hz control loop
+        ros::Rate rate(5); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -216,8 +216,8 @@ int main(int argc, char** argv) {
     TitanDriverROSWrapper titan(&nh, &vmx);
     ROS_INFO("Titan driver is now started");
 
-    navXROSWrapper navx(&nh, &vmx);
-    ROS_INFO("navX driver is now started");
+    // navXROSWrapper navx(&nh, &vmx);
+    // ROS_INFO("navX driver is now started");
 
     // Instantiate Robot class
     Robot robot(&nh);
