@@ -103,53 +103,53 @@ public:
     }
 
     void holonomicDrive(double x, double y, double z) {
-        // rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
-        // leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
-        // backSpeed = 0.67 * y - 0.33 * z;
+        rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
+        leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
+        backSpeed = 0.67 * y - 0.33 * z;
 
-        // double max_speed = std::abs(rightSpeed);
-        // if (std::abs(leftSpeed) > max_speed) {
-        //     max_speed = std::abs(leftSpeed);
-        // }
-        // if (std::abs(backSpeed) > max_speed) {
-        //     max_speed = std::abs(backSpeed);
-        // }
-        // if (max_speed > 1.0) {
-        //     rightSpeed /= max_speed;
-        //     leftSpeed /= max_speed;
-        //     backSpeed /= max_speed;
-        // }
-        const double wheel_radius = 0.05; // meters (confirmed radius: 5 cm)
-        const double robot_radius = 0.15;  // Adjust this to your actual robot measurement (center-to-wheel distance)
-
-        // Calculate wheel linear velocities (m/s)
-        double v_left  = (-0.5 * x) - (0.866 * y) - (robot_radius * z);
-        double v_right = (-0.5 * x) + (0.866 * y) - (robot_radius * z);
-        double v_back  = (1.0 * x) - (robot_radius * z);
-
-        // Convert wheel linear velocities to wheel angular velocities (rad/s)
-        double w_left  = v_left  / wheel_radius;
-        double w_right = v_right / wheel_radius;
-        double w_back  = v_back  / wheel_radius;
-
-        // Convert angular velocities (rad/s) to RPM
-        double left_rpm  = (w_left  * 60.0) / (2.0 * PI);
-        double right_rpm = (w_right * 60.0) / (2.0 * PI);
-        double back_rpm  = (w_back  * 60.0) / (2.0 * PI);
-
-        // Scale RPM to motor command range (-1.0 to 1.0)
-        const double max_motor_rpm = 2500.0;
-        leftSpeed  = left_rpm  / max_motor_rpm;
-        rightSpeed = right_rpm / max_motor_rpm;
-        backSpeed  = back_rpm  / max_motor_rpm;
-
-        // Ensure motor commands are within -1.0 to 1.0
-        double max_mag = std::max({std::abs(leftSpeed), std::abs(rightSpeed), std::abs(backSpeed)});
-        if (max_mag > 1.0) {
-            leftSpeed  /= max_mag;
-            rightSpeed /= max_mag;
-            backSpeed  /= max_mag;
+        double max_speed = std::abs(rightSpeed);
+        if (std::abs(leftSpeed) > max_speed) {
+            max_speed = std::abs(leftSpeed);
         }
+        if (std::abs(backSpeed) > max_speed) {
+            max_speed = std::abs(backSpeed);
+        }
+        if (max_speed > 1.0) {
+            rightSpeed /= max_speed;
+            leftSpeed /= max_speed;
+            backSpeed /= max_speed;
+        }
+        // const double wheel_radius = 0.05; // meters (confirmed radius: 5 cm)
+        // const double robot_radius = 0.15;  // Adjust this to your actual robot measurement (center-to-wheel distance)
+
+        // // Calculate wheel linear velocities (m/s)
+        // double v_left  = (-0.5 * x) - (0.866 * y) - (robot_radius * z);
+        // double v_right = (-0.5 * x) + (0.866 * y) - (robot_radius * z);
+        // double v_back  = (1.0 * x) - (robot_radius * z);
+
+        // // Convert wheel linear velocities to wheel angular velocities (rad/s)
+        // double w_left  = v_left  / wheel_radius;
+        // double w_right = v_right / wheel_radius;
+        // double w_back  = v_back  / wheel_radius;
+
+        // // Convert angular velocities (rad/s) to RPM
+        // double left_rpm  = (w_left  * 60.0) / (2.0 * PI);
+        // double right_rpm = (w_right * 60.0) / (2.0 * PI);
+        // double back_rpm  = (w_back  * 60.0) / (2.0 * PI);
+
+        // // Scale RPM to motor command range (-1.0 to 1.0)
+        // const double max_motor_rpm = 2500.0;
+        // leftSpeed  = left_rpm  / max_motor_rpm;
+        // rightSpeed = right_rpm / max_motor_rpm;
+        // backSpeed  = back_rpm  / max_motor_rpm;
+
+        // // Ensure motor commands are within -1.0 to 1.0
+        // double max_mag = std::max({std::abs(leftSpeed), std::abs(rightSpeed), std::abs(backSpeed)});
+        // if (max_mag > 1.0) {
+        //     leftSpeed  /= max_mag;
+        //     rightSpeed /= max_mag;
+        //     backSpeed  /= max_mag;
+        // }
     }
 
     void publish_motors() {
