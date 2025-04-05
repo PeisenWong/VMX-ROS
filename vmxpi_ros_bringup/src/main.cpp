@@ -103,6 +103,15 @@ public:
     }
 
     void holonomicDrive(double x, double y, double z) {
+        const double min_speed = 0.3;
+
+        if(x > 0 && x < min_speed)
+            x = min_speed;
+        if(y > 0 && y < min_speed)
+            y = min_speed;
+        if(z > 0 && z < min_speed)
+            z = min_speed;
+
         rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
         backSpeed = 0.67 * y - 0.33 * z;
