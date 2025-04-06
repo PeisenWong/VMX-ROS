@@ -29,9 +29,13 @@ struct PID {
     double compute(double setpoint, double measured, double dt) {
         double error = setpoint - measured;
         integral += error * dt;
+        // Clamp the integral term to avoid windup
+        const double integral_limit = 1000.0; // adjust this limit as needed
+        if(integral > integral_limit) integral = integral_limit;
+        if(integral < -integral_limit) integral = -integral_limit;
+        
         double derivative = (error - prev_error) / dt;
         prev_error = error;
-
         return (kp * error) + (ki * integral) + (kd * derivative);
     }
 };
@@ -58,7 +62,7 @@ void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
-   right_count = -msg->data;
+   right_count = msg->data;
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
