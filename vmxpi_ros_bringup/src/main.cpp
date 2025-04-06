@@ -72,7 +72,8 @@ private:
     const double COMMAND_TIMEOUT = 0.5; // 0.5 seconds
     double target_w_left, target_w_right, target_w_back;
     double target_rpm_left, target_rpm_right, target_rpm_back;
-    double meas_rm_left, meas_rpm_right, meas_rpm_back;
+    double meas_rpm_left, meas_rpm_right, meas_rpm_back;
+    double final_left, final_right, final_back;
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
@@ -171,21 +172,21 @@ public:
         vmxpi_ros::MotorSpeed msg1;
 
         // Left Motor (Motor 0)
-        msg1.request.speed = leftSpeed;
+        msg1.request.speed = final_left;
         msg1.request.motor = 0;
         if (!set_m_speed.call(msg1)) {
             ROS_ERROR("Failed to set speed for Left Motor");
         }
 
         // Right Motor (Motor 1)
-        msg1.request.speed = rightSpeed;
+        msg1.request.speed = final_right;
         msg1.request.motor = 1;
         if (!set_m_speed.call(msg1)) {
             ROS_ERROR("Failed to set speed for Right Motor");
         }
 
         // Back Motor (Motor 2)
-        msg1.request.speed = backSpeed;
+        msg1.request.speed = final_back;
         msg1.request.motor = 2;
         if (!set_m_speed.call(msg1)) {
             ROS_ERROR("Failed to set speed for Back Motor");
@@ -224,14 +225,14 @@ public:
                 
                 const double max_motor_rpm = 160.0;
 
-                leftSpeed  = output_left  / max_motor_rpm;
-                rightSpeed = output_right / max_motor_rpm;
-                backSpeed  = output_back  / max_motor_rpm;
+                final_left  = output_left  / max_motor_rpm;
+                final_right = output_right / max_motor_rpm;
+                final_back  = output_back  / max_motor_rpm;
 
                 // Clamp motor speeds to [-1.0, 1.0]
-                leftSpeed  = std::max(-1.0, std::min(leftSpeed,  1.0));
-                rightSpeed = std::max(-1.0, std::min(rightSpeed, 1.0));
-                backSpeed  = std::max(-1.0, std::min(backSpeed,  1.0));
+                final_left  = std::max(-1.0, std::min(leftSpeed,  1.0));
+                final_right = std::max(-1.0, std::min(rightSpeed, 1.0));
+                final_back  = std::max(-1.0, std::min(backSpeed,  1.0));
 
                 // Publish motor commands
                 publish_motors();
