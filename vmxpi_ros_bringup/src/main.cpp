@@ -102,15 +102,33 @@ public:
         cmd_angular_z = msg->angular.z;
     }
 
-    void holonomicDrive(double x, double y, double z) {
-        const double min_speed = 0.5;
+    double mapValue(double input, double in_min, double in_max, double out_min, double out_max) {
+        return out_min + (input - in_min) * (out_max - out_min) / (in_max - in_min);
+    }
 
-        if(x > 0 && x < min_speed)
-            x = min_speed;
-        if(y > 0 && y < min_speed)
-            y = min_speed;
-        if(z > 0 && z < min_speed)
-            z = min_speed;
+    void holonomicDrive(double x, double y, double z) {
+        const double min_speed = 0.3;
+        const double x_input_minmax = 1.5;  // adjustable input max (symmetrical -1.5 to 1.5)
+        const double y_input_minmax = 1.5;
+        const double z_input_minmax = 2.5;
+
+        // Map x
+        if (x > 0)
+            x = mapValue(x, 0, x_input_minmax, min_speed, 1.0);
+        else if (x < 0)
+            x = mapValue(x, -x_input_minmax, 0, -1.0, -min_speed);
+
+        // Map y
+        if (y > 0)
+            y = mapValue(y, 0, y_input_minmax, min_speed, 1.0);
+        else if (y < 0)
+            y = mapValue(y, -y_input_minmax, 0, -1.0, -min_speed);
+
+        // Map z
+        if (z > 0)
+            z = mapValue(z, 0, z_input_minmax, min_speed, 1.0);
+        else if (z < 0)
+            z = mapValue(z, -z_input_minmax, 0, -1.0, -min_speed);
 
         rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
