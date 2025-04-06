@@ -73,7 +73,7 @@ private:
     std::thread control_loop_thread;
     std::chrono::steady_clock::time_point last_cmd_time;
     double cmd_linear_x = 0.0, cmd_linear_y = 0.0, cmd_angular_z = 0.0;
-    const double COMMAND_TIMEOUT = 0.5; // 0.5 seconds
+    const double COMMAND_TIMEOUT = 0.05; // 0.5 seconds
     double target_w_left, target_w_right, target_w_back;
     double target_rpm_left, target_rpm_right, target_rpm_back;
     double meas_rpm_left, meas_rpm_right, meas_rpm_back;
@@ -91,9 +91,9 @@ public:
     ros::Subscriber vel_sub;
 
     // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(1.0, 1.5, 0.01);
-    PID pid_right = PID(1.0, 1.5, 0.01);
-    PID pid_back  = PID(1.0, 1.5, 0.01);
+    PID pid_left  = PID(1.0, 1.5, 0.0);
+    PID pid_right = PID(1.0, 1.5, 0.0);
+    PID pid_back  = PID(1.0, 1.5, 0.0);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
