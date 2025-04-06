@@ -232,7 +232,7 @@ public:
                 // Calculate measured RPM for each wheel.
                 // RPM = (delta_ticks / TPR) / dt * 60.0
                 meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-                meas_rpm_right = apply_Deadband((delta_right / TPR) / dt * 60.0);
+                meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                 meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
                 // Compute motor speeds using the latest cmd_vel
