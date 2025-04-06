@@ -91,9 +91,9 @@ public:
     ros::Subscriber vel_sub;
 
     // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(1.0, 1.5, 0.0);
-    PID pid_right = PID(1.0, 1.5, 0.00);
-    PID pid_back  = PID(1.0, 1.5, 0.00);
+    PID pid_left  = PID(0.01, 0.015, 0.00);
+    PID pid_right = PID(0.01, 0.015, 0.00);
+    PID pid_back  = PID(0.01, 0.015, 0.00);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
@@ -256,7 +256,9 @@ public:
                 ROS_INFO_STREAM("PID output: left " << output_left 
                     << ", right " << output_right 
                     << ", back " << output_back);
-    
+                ROS_INFO_STREAM("Target RPM: left " << target_rpm_left 
+                    << ", right " << target_rpm_right 
+                    << ", back " << target_rpm_back);
 
                 // Publish motor commands
                 publish_motors();
