@@ -62,7 +62,7 @@ void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
-   right_count = msg->data;
+   right_count = -msg->data;
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
