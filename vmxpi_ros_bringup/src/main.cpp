@@ -201,7 +201,7 @@ public:
                 //     rate.sleep();
                 //     continue;
                 // }
-                // last_vel_time = now;
+                last_vel_time = now;
 
                 // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
 
