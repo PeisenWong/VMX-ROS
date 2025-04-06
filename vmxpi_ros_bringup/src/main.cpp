@@ -62,7 +62,7 @@ void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
-   right_count = -msg->data;
+   right_count = msg->data;
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
@@ -91,9 +91,9 @@ public:
     ros::Subscriber vel_sub;
 
     // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(0.01, 0.015, 0.001);
-    PID pid_right = PID(0.01, 0.015, 0.001);
-    PID pid_back  = PID(0.01, 0.015, 0.001);
+    PID pid_left  = PID(0.001, 0.015, 0.001);
+    PID pid_right = PID(0.001, 0.015, 0.001);
+    PID pid_back  = PID(0.001, 0.015, 0.001);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
@@ -132,6 +132,10 @@ public:
         cmd_linear_x = msg->linear.x;
         cmd_linear_y = msg->linear.y;
         cmd_angular_z = msg->angular.z;
+    }
+
+    double applyDeadband(double rpm, double threshold = 1.0) {
+        return (std::abs(rpm) < threshold) ? 0.0 : rpm;
     }
 
     void holonomicDrive(double x, double y, double z) {
@@ -228,7 +232,7 @@ public:
                 // Calculate measured RPM for each wheel.
                 // RPM = (delta_ticks / TPR) / dt * 60.0
                 meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-                meas_rpm_right = (delta_right / TPR) / dt * 60.0;
+                meas_rpm_right = apply_Deadband((delta_right / TPR) / dt * 60.0);
                 meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
                 // Compute motor speeds using the latest cmd_vel
