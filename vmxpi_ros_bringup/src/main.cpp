@@ -91,9 +91,9 @@ public:
     ros::Subscriber vel_sub;
 
     // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(1.0, 1.5, 0.001);
-    PID pid_right = PID(1.0, 1.5, 0.001);
-    PID pid_back  = PID(1.0, 1.5, 0.001);
+    PID pid_left  = PID(1.0, 1.5, 0.01);
+    PID pid_right = PID(1.0, 1.5, 0.01);
+    PID pid_back  = PID(1.0, 1.5, 0.01);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
@@ -195,7 +195,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 100 Hz control loop
+        ros::Rate rate(100); // 100 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
