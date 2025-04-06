@@ -19,6 +19,23 @@ static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
 
+struct PID {
+    double kp, ki, kd;
+    double prev_error;
+    double integral;
+
+    PID(double p, double i, double d) : kp(p), ki(i), kd(d), prev_error(0), integral(0) {}
+
+    double compute(double setpoint, double measured, double dt) {
+        double error = setpoint - measured;
+        integral += error * dt;
+        double derivative = (error - prev_error) / dt;
+        prev_error = error;
+
+        return (kp * error) + (ki * integral) + (kd * derivative);
+    }
+};
+
 // Callbacks for Encoder Distance values
 void motor0Callback(const std_msgs::Float32::ConstPtr& msg) {
    left_encoder = msg->data;
@@ -41,7 +58,7 @@ void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
-   right_count = msg->data;
+   right_count = -msg->data;
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
@@ -53,8 +70,12 @@ private:
     std::chrono::steady_clock::time_point last_cmd_time;
     double cmd_linear_x = 0.0, cmd_linear_y = 0.0, cmd_angular_z = 0.0;
     const double COMMAND_TIMEOUT = 0.5; // 0.5 seconds
-    double filtered_leftSpeed = 0.0, filtered_rightSpeed = 0.0, filtered_backSpeed = 0.0;
+    double target_w_left, target_w_right, target_w_back;
+    double target_rpm_left, target_rpm_right, target_rpm_back;
+    double meas_rm_left, meas_rpm_right, meas_rpm_back;
     const double alpha = 0.1; // Smoothing factor
+    double TPR = 1464;
+    std::chrono::steady_clock::time_point last_vel_time;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -62,6 +83,10 @@ public:
     ros::Subscriber motor0_dist, motor1_dist, motor2_dist, angle_sub, yawAngle_sub;
     ros::Subscriber enc0_sub, enc1_sub, enc2_sub;
     ros::Subscriber vel_sub;
+
+    PID pid_left(1, 0, 0.000);
+    PID pid_right(1, 0, 0.000);
+    PID pid_back(1, 0, 0.000);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
@@ -102,60 +127,44 @@ public:
         cmd_angular_z = msg->angular.z;
     }
 
-    double mapValue(double input, double in_min, double in_max, double out_min, double out_max) {
-        return out_min + (input - in_min) * (out_max - out_min) / (in_max - in_min);
+    void calculateCurrentRPM()
+    {       
+        int current_left  = left_count;
+        int current_right = right_count;
+        int current_back  = back_count;
+        
+        // Calculate encoder differences since last cycle
+        int delta_left  = current_left  - last_left_count;
+        int delta_right = current_right - last_right_count;
+        int delta_back  = current_back  - last_back_count;
+        
+        last_left_count  = current_left;
+        last_right_count = current_right;
+        last_back_count  = current_back;
+        
+        // Calculate measured RPM for each wheel.
+        // RPM = (delta_ticks / TPR) / dt * 60.0
+        meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
+        meas_rpm_right = (delta_right / TPR) / dt * 60.0;
+        meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
     }
 
     void holonomicDrive(double x, double y, double z) {
-        const double min_speed = 0.3;
+        const double r = 0.051;
 
         rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
         backSpeed = 0.67 * y - 0.33 * z;
 
-        double max_speed = std::abs(rightSpeed);
-        if (std::abs(leftSpeed) > max_speed) {
-            max_speed = std::abs(leftSpeed);
-        }
-        if (std::abs(backSpeed) > max_speed) {
-            max_speed = std::abs(backSpeed);
-        }
-        if (max_speed > 1.0) {
-            rightSpeed /= max_speed;
-            leftSpeed /= max_speed;
-            backSpeed /= max_speed;
-        }
-        // const double wheel_radius = 0.05; // meters (confirmed radius: 5 cm)
-        // const double robot_radius = 0.15;  // Adjust this to your actual robot measurement (center-to-wheel distance)
+        // Convert to angular vel
+        target_w_left = leftSpeed / r;
+        target_w_right = rightSpeed / r;
+        target_w_back = backSpeed / r;
 
-        // // Calculate wheel linear velocities (m/s)
-        // double v_left  = (-0.5 * x) - (0.866 * y) - (robot_radius * z);
-        // double v_right = (-0.5 * x) + (0.866 * y) - (robot_radius * z);
-        // double v_back  = (1.0 * x) - (robot_radius * z);
-
-        // // Convert wheel linear velocities to wheel angular velocities (rad/s)
-        // double w_left  = v_left  / wheel_radius;
-        // double w_right = v_right / wheel_radius;
-        // double w_back  = v_back  / wheel_radius;
-
-        // // Convert angular velocities (rad/s) to RPM
-        // double left_rpm  = (w_left  * 60.0) / (2.0 * PI);
-        // double right_rpm = (w_right * 60.0) / (2.0 * PI);
-        // double back_rpm  = (w_back  * 60.0) / (2.0 * PI);
-
-        // // Scale RPM to motor command range (-1.0 to 1.0)
-        // const double max_motor_rpm = 2500.0;
-        // leftSpeed  = left_rpm  / max_motor_rpm;
-        // rightSpeed = right_rpm / max_motor_rpm;
-        // backSpeed  = back_rpm  / max_motor_rpm;
-
-        // // Ensure motor commands are within -1.0 to 1.0
-        // double max_mag = std::max({std::abs(leftSpeed), std::abs(rightSpeed), std::abs(backSpeed)});
-        // if (max_mag > 1.0) {
-        //     leftSpeed  /= max_mag;
-        //     rightSpeed /= max_mag;
-        //     backSpeed  /= max_mag;
-        // }
+        // Convert to rpm
+        target_rpm_left = target_w_left * 60 / (2 * PI)
+        target_rpm_right = target_w_right * 60 / (2 * PI)
+        target_rpm_back = target_w_back * 60 / (2 * PI)
     }
 
     void publish_motors() {
@@ -184,22 +193,45 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 10 Hz control loop
+        ros::Rate rate(100); // 100 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
                 auto now = std::chrono::steady_clock::now();
-                double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
-
-                if (elapsed > COMMAND_TIMEOUT) {
-                    // No cmd_vel received for COMMAND_TIMEOUT seconds, stop the robot
-                    cmd_linear_x = 0.0;
-                    cmd_linear_y = 0.0;
-                    cmd_angular_z = 0.0;
+                double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
+                if (dt < 0.005) {  // protect against extremely small dt
+                    rate.sleep();
+                    continue;
                 }
+                last_vel_time = now;
 
+                // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
+
+                // if (elapsed > COMMAND_TIMEOUT) {
+                //     // No cmd_vel received for COMMAND_TIMEOUT seconds, stop the robot
+                //     cmd_linear_x = 0.0;
+                //     cmd_linear_y = 0.0;
+                //     cmd_angular_z = 0.0;
+                // }
+                
+                calculateCurrentRPM();
                 // Compute motor speeds using the latest cmd_vel
                 holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
+
+                double output_left  = pid_left.compute(target_rpm_left, current_rpm_left, dt);
+                double output_right = pid_right.compute(target_rpm_right, current_rpm_right, dt);
+                double output_back  = pid_back.compute(target_rpm_back, current_rpm_back, dt);
+                
+                const double max_motor_rpm = 160.0;
+
+                leftSpeed  = output_left  / max_motor_rpm;
+                rightSpeed = output_right / max_motor_rpm;
+                backSpeed  = output_back  / max_motor_rpm;
+
+                // Clamp motor speeds to [-1.0, 1.0]
+                leftSpeed  = std::max(-1.0, std::min(leftSpeed,  1.0));
+                rightSpeed = std::max(-1.0, std::min(rightSpeed, 1.0));
+                backSpeed  = std::max(-1.0, std::min(backSpeed,  1.0));
 
                 // Publish motor commands
                 publish_motors();
