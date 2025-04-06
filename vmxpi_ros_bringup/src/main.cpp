@@ -207,6 +207,24 @@ public:
                 // }
                 last_vel_time = now;
 
+                double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
+                bool zeroCommand = (std::abs(cmd_linear_x) < 1e-6 &&
+                                    std::abs(cmd_linear_y) < 1e-6 &&
+                                    std::abs(cmd_angular_z) < 1e-6) ||
+                                (elapsed > COMMAND_TIMEOUT);
+                if (zeroCommand) {
+                    target_rpm_left  = 0.0;
+                    target_rpm_right = 0.0;
+                    target_rpm_back  = 0.0;
+                    // Reset PID state for all wheels
+                    pid_left.integral = 0.0;
+                    pid_left.prev_error = 0.0;
+                    pid_right.integral = 0.0;
+                    pid_right.prev_error = 0.0;
+                    pid_back.integral = 0.0;
+                    pid_back.prev_error = 0.0;
+                }
+
                 // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
 
                 // if (elapsed > COMMAND_TIMEOUT) {
