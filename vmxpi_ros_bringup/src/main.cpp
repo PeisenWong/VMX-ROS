@@ -235,7 +235,7 @@ public:
                 holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
 
                 double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
-                double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, dt);
+                double output_right = -pid_right.compute(target_rpm_right, meas_rpm_right, dt);
                 double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, dt);
                 
                 const double max_motor_rpm = 160.0;
