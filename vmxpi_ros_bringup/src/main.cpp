@@ -73,7 +73,7 @@ private:
     std::thread control_loop_thread;
     std::chrono::steady_clock::time_point last_cmd_time;
     double cmd_linear_x = 0.0, cmd_linear_y = 0.0, cmd_angular_z = 0.0;
-    const double COMMAND_TIMEOUT = 0.05; // 0.5 seconds
+    const double COMMAND_TIMEOUT = 0.5; // 0.5 seconds
     double target_w_left, target_w_right, target_w_back;
     double target_rpm_left, target_rpm_right, target_rpm_back;
     double meas_rpm_left, meas_rpm_right, meas_rpm_back;
