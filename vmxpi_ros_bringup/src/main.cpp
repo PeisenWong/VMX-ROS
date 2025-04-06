@@ -283,7 +283,7 @@ public:
                     << ", back " << target_rpm_back);
 
                 // Publish motor commands
-                // publish_motors();
+                publish_motors();
             }
             rate.sleep();
         }
