@@ -108,27 +108,6 @@ public:
 
     void holonomicDrive(double x, double y, double z) {
         const double min_speed = 0.3;
-        const double x_input_minmax = 1.5;  // adjustable input max (symmetrical -1.5 to 1.5)
-        const double y_input_minmax = 1.5;
-        const double z_input_minmax = 2.5;
-
-        // Map x
-        if (x > 0)
-            x = mapValue(x, 0, x_input_minmax, min_speed, 1.0);
-        else if (x < 0)
-            x = mapValue(x, -x_input_minmax, 0, -1.0, -min_speed);
-
-        // Map y
-        if (y > 0)
-            y = mapValue(y, 0, y_input_minmax, min_speed, 1.0);
-        else if (y < 0)
-            y = mapValue(y, -y_input_minmax, 0, -1.0, -min_speed);
-
-        // Map z
-        if (z > 0)
-            z = mapValue(z, 0, z_input_minmax, min_speed, 1.0);
-        else if (z < 0)
-            z = mapValue(z, -z_input_minmax, 0, -1.0, -min_speed);
 
         rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
@@ -265,8 +244,8 @@ int main(int argc, char** argv) {
     TitanDriverROSWrapper titan(&nh, &vmx);
     ROS_INFO("Titan driver is now started");
 
-    // navXROSWrapper navx(&nh, &vmx);
-    // ROS_INFO("navX driver is now started");
+    navXROSWrapper navx(&nh, &vmx);
+    ROS_INFO("navX driver is now started");
 
     // Instantiate Robot class
     Robot robot(&nh);
