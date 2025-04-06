@@ -72,7 +72,7 @@ void leftEncCallback(const std_msgs::Int32::ConstPtr& msg) {
 }
 void rightEncCallback(const std_msgs::Int32::ConstPtr& msg) {
     // Invert right encoder if needed
-    global_right_count = msg->data; // adjust sign if necessary
+    global_right_count = -msg->data; // adjust sign if necessary
 }
 void backEncCallback(const std_msgs::Int32::ConstPtr& msg) {
     global_back_count = msg->data;
