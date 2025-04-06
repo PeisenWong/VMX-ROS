@@ -192,7 +192,7 @@ public:
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
                 auto now = std::chrono::steady_clock::now();
-                // double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
+                double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
                 // if (dt < 0.005) {  // protect against extremely small dt
                 //     rate.sleep();
                 //     continue;
@@ -245,7 +245,7 @@ public:
                 final_right = std::max(-1.0, std::min(rightSpeed, 1.0));
                 final_back  = std::max(-1.0, std::min(backSpeed,  1.0));
 
-                ROS_INFO("Final: left: %f, right: %f, back: %f", final_left, final_right, final_back);
+                ROS_INFO("Final: left: %.2f, right: %.2f, back: %.2f", final_left, final_right, final_back);
 
                 // Publish motor commands
                 publish_motors();
