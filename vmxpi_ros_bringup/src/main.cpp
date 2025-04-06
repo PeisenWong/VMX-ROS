@@ -42,37 +42,18 @@ struct PID {
     }
 };
 
-// Encoder callbacks (assuming the sign is correct for your configuration)
-void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
-   // Left encoder
-   // (No inversion here if not needed)
-   // Adjust as necessary.
-   // In this example, we assume the raw count is valid.
-   // For simplicity, we use a global variable.
-   // (In a real system you might encapsulate these in the class.)
-   static_cast<void>(msg); // placeholder if not used
-}
-void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
-   // Right encoder
-   static_cast<void>(msg);
-}
-void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
-   // Back encoder
-   static_cast<void>(msg);
-}
-
-// In this example, we'll use global variables for encoder counts
-// In a more encapsulated design, these could be members of Robot.
+// Global encoder counts
 static int global_left_count = 0;
 static int global_right_count = 0;
 static int global_back_count = 0;
 
+// Encoder callbacks
 void leftEncCallback(const std_msgs::Int32::ConstPtr& msg) {
     global_left_count = msg->data;
 }
 void rightEncCallback(const std_msgs::Int32::ConstPtr& msg) {
-    // Invert right encoder if needed
-    global_right_count = -msg->data; // adjust sign if necessary
+    // Invert the right encoder count so that positive means forward motion.
+    global_right_count = -msg->data;
 }
 void backEncCallback(const std_msgs::Int32::ConstPtr& msg) {
     global_back_count = msg->data;
@@ -101,7 +82,7 @@ private:
     // Encoder ticks per revolution
     const double TPR = 1464;
 
-    // PID controllers for each wheel (tuned gains)
+    // PID controllers for each wheel (tuned gains; adjust as needed)
     PID pid_left  = PID(1.0, 1.5, 0.0);
     PID pid_right = PID(1.0, 1.5, 0.0);
     PID pid_back  = PID(1.0, 1.5, 0.0);
@@ -122,11 +103,9 @@ public:
         // Subscribe to cmd_vel topic
         vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
 
-        // Initialize timers
+        // Initialize timers and encoder counts
         last_cmd_time = std::chrono::steady_clock::now();
         last_vel_time = std::chrono::steady_clock::now();
-
-        // Initialize encoder last counts
         last_left_count = global_left_count;
         last_right_count = global_right_count;
         last_back_count = global_back_count;
@@ -145,20 +124,23 @@ public:
     }
 
     // Kinematic conversion: Convert cmd_vel to target wheel speeds (RPM)
-    // Adjust these equations to match your robot's geometry and kinematics.
+    // Adjust these equations to match your robot's geometry.
+    // For a configuration with a straight back wheel,
+    // we want the left and right wheels to have the same forward component.
     void computeKinematics(double x, double y, double z) {
-        // Example: simple scaling (replace with your kinematics if needed)
-        // Here, we compute motor speeds (linear) then convert to angular speeds.
-        // You can modify these equations to your desired configuration.
+        // Example kinematics for a 3-wheel omni drive with a straight back wheel.
+        // For pure forward (x > 0, y = 0, z = 0) we want:
+        //   leftSpeed = k * x, rightSpeed = k * x, backSpeed = 0.
+        // Here, we choose coefficients accordingly.
         const double r = 0.051;  // wheel radius in meters
-        // Using a simple holonomic drive model (adjust coefficients as needed)
-        // For this example, we assume:
-        //   leftSpeed, rightSpeed, backSpeed are linear speeds (m/s)
-        double leftSpeed  = -0.33 * y + 0.58 * x - 0.33 * z;
-        double rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
-        double backSpeed  = 0.67 * y - 0.33 * z;
+        
+        // The coefficients below are chosen so that for x>0, y=z=0:
+        // leftSpeed = rightSpeed = 0.58 * x, and backSpeed = 0.
+        double leftSpeed  = 0.58 * x - 0.33 * y - 0.33 * z;
+        double rightSpeed = 0.58 * x - 0.33 * y - 0.33 * z; // Notice: same as leftSpeed for forward
+        double backSpeed  = 0.67 * y - 0.33 * z;              // Back wheel responds to lateral and rotational commands
 
-        // Convert linear speeds (m/s) to angular wheel speeds (rad/s)
+        // Convert linear speeds (m/s) to angular speeds (rad/s)
         double target_w_left  = leftSpeed / r;
         double target_w_right = rightSpeed / r;
         double target_w_back  = backSpeed / r;
@@ -220,7 +202,8 @@ public:
                 meas_rpm_right = (delta_right / TPR) / dt * 60.0;
                 meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
-                // If no cmd_vel has been received for COMMAND_TIMEOUT, or all cmd_vel components are 0, stop motors.
+                // Check for zero command: if no cmd_vel has been received for COMMAND_TIMEOUT
+                // or if all cmd_vel components are effectively zero, then stop the motors.
                 double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
                 bool zeroCommand = (std::abs(cmd_linear_x) < 1e-6 &&
                                     std::abs(cmd_linear_y) < 1e-6 &&
@@ -252,7 +235,7 @@ public:
                 final_right = std::max(-1.0, std::min(final_right, 1.0));
                 final_back  = std::max(-1.0, std::min(final_back,  1.0));
 
-                // Optionally, print debug info:
+                // Debug info:
                 ROS_INFO_STREAM("Measured RPM: left " << meas_rpm_left 
                     << ", right " << meas_rpm_right 
                     << ", back " << meas_rpm_back);
