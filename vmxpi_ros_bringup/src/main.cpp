@@ -146,6 +146,19 @@ public:
         target_rpm_left = target_w_left * 60 / (2 * PI);
         target_rpm_right = target_w_right * 60 / (2 * PI);
         target_rpm_back = target_w_back * 60 / (2 * PI);
+
+        // double max_speed = std::abs(rightSpeed);
+        // if (std::abs(leftSpeed) > max_speed) {
+        //     max_speed = std::abs(leftSpeed);
+        // }
+        // if (std::abs(backSpeed) > max_speed) {
+        //     max_speed = std::abs(backSpeed);
+        // }
+        // if (max_speed > 1.0) {
+        //     rightSpeed /= max_speed;
+        //     leftSpeed /= max_speed;
+        //     backSpeed /= max_speed;
+        // }
     }
 
     void publish_motors() {
@@ -217,9 +230,9 @@ public:
                 // Compute motor speeds using the latest cmd_vel
                 holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
 
-                double output_left  = pid_left.compute(target_rpm_left, current_rpm_left, dt);
-                double output_right = pid_right.compute(target_rpm_right, current_rpm_right, dt);
-                double output_back  = pid_back.compute(target_rpm_back, current_rpm_back, dt);
+                double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
+                double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, dt);
+                double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, dt);
                 
                 const double max_motor_rpm = 160.0;
 
