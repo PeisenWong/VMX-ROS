@@ -130,28 +130,6 @@ public:
         cmd_angular_z = msg->angular.z;
     }
 
-    void calculateCurrentRPM()
-    {       
-        int current_left  = left_count;
-        int current_right = right_count;
-        int current_back  = back_count;
-        
-        // Calculate encoder differences since last cycle
-        int delta_left  = current_left  - last_left_count;
-        int delta_right = current_right - last_right_count;
-        int delta_back  = current_back  - last_back_count;
-        
-        last_left_count  = current_left;
-        last_right_count = current_right;
-        last_back_count  = current_back;
-        
-        // Calculate measured RPM for each wheel.
-        // RPM = (delta_ticks / TPR) / dt * 60.0
-        meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-        meas_rpm_right = (delta_right / TPR) / dt * 60.0;
-        meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
-    }
-
     void holonomicDrive(double x, double y, double z) {
         const double r = 0.051;
 
@@ -165,9 +143,9 @@ public:
         target_w_back = backSpeed / r;
 
         // Convert to rpm
-        target_rpm_left = target_w_left * 60 / (2 * PI)
-        target_rpm_right = target_w_right * 60 / (2 * PI)
-        target_rpm_back = target_w_back * 60 / (2 * PI)
+        target_rpm_left = target_w_left * 60 / (2 * PI);
+        target_rpm_right = target_w_right * 60 / (2 * PI);
+        target_rpm_back = target_w_back * 60 / (2 * PI);
     }
 
     void publish_motors() {
@@ -217,7 +195,25 @@ public:
                 //     cmd_angular_z = 0.0;
                 // }
                 
-                calculateCurrentRPM();
+                int current_left  = left_count;
+                int current_right = right_count;
+                int current_back  = back_count;
+                
+                // Calculate encoder differences since last cycle
+                int delta_left  = current_left  - last_left_count;
+                int delta_right = current_right - last_right_count;
+                int delta_back  = current_back  - last_back_count;
+                
+                last_left_count  = current_left;
+                last_right_count = current_right;
+                last_back_count  = current_back;
+                
+                // Calculate measured RPM for each wheel.
+                // RPM = (delta_ticks / TPR) / dt * 60.0
+                meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
+                meas_rpm_right = (delta_right / TPR) / dt * 60.0;
+                meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
+
                 // Compute motor speeds using the latest cmd_vel
                 holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
 
