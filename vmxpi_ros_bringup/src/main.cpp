@@ -159,11 +159,6 @@ public:
     }
 
     void publish_motors() {
-        // Apply smoothing
-        // filtered_leftSpeed = alpha * leftSpeed + (1 - alpha) * filtered_leftSpeed;
-        // filtered_rightSpeed = alpha * rightSpeed + (1 - alpha) * filtered_rightSpeed;
-        // filtered_backSpeed = alpha * backSpeed + (1 - alpha) * filtered_backSpeed;
-
         vmxpi_ros::MotorSpeed msg1;
 
         // Left Motor (Motor 0)
@@ -244,8 +239,8 @@ int main(int argc, char** argv) {
     TitanDriverROSWrapper titan(&nh, &vmx);
     ROS_INFO("Titan driver is now started");
 
-    navXROSWrapper navx(&nh, &vmx);
-    ROS_INFO("navX driver is now started");
+    // navXROSWrapper navx(&nh, &vmx);
+    // ROS_INFO("navX driver is now started");
 
     // Instantiate Robot class
     Robot robot(&nh);
