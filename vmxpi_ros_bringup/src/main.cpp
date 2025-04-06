@@ -241,9 +241,9 @@ public:
                 final_back  = output_back  / max_motor_rpm;
 
                 // Clamp motor speeds to [-1.0, 1.0]
-                final_left  = std::max(-1.0, std::min(leftSpeed,  1.0));
-                final_right = std::max(-1.0, std::min(rightSpeed, 1.0));
-                final_back  = std::max(-1.0, std::min(backSpeed,  1.0));
+                final_left  = std::max(-1.0, std::min(final_left,  1.0));
+                final_right = std::max(-1.0, std::min(final_right, 1.0));
+                final_back  = std::max(-1.0, std::min(final_back,  1.0));
 
                 ROS_INFO("Final: left: %.2f, right: %.2f, back: %.2f", final_left, final_right, final_back);
 
