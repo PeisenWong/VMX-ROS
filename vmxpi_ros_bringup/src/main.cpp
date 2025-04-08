@@ -196,18 +196,18 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(100); // 10 Hz control loop
+        ros::Rate rate(10); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
                 auto now = std::chrono::steady_clock::now();
                 // Compute dt since last velocity update
                 double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
-                if (dt < 1e-4 || dt > 0.1) {  // adjust thresholds as appropriate
-                    last_vel_time = now;
-                    rate.sleep();
-                    continue;
-                }
+                // if (dt < 1e-4 || dt > 0.1) {  // adjust thresholds as appropriate
+                //     last_vel_time = now;
+                //     rate.sleep();
+                //     continue;
+                // }
                 last_vel_time = now;
     
                 // Calculate elapsed time since the last received velocity command
