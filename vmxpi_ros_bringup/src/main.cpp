@@ -122,6 +122,11 @@ public:
         last_cmd_time = std::chrono::steady_clock::now();
         last_vel_time = std::chrono::steady_clock::now();
 
+        // Right after starting your subscriptions and before starting the control loop:
+        last_left_count  = left_count;
+        last_right_count = right_count;
+        last_back_count  = back_count;
+
         // Start the control loop
         control_loop_thread = std::thread(&Robot::controlLoop, this);
     }
