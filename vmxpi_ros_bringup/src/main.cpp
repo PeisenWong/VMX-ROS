@@ -201,7 +201,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 10 Hz control loop
+        ros::Rate rate(50); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
