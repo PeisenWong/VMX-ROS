@@ -91,9 +91,9 @@ public:
     ros::Subscriber vel_sub;
 
     // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(1.0, 2.0, 0.001);
-    PID pid_right = PID(1.0, 2.0, 0.001);
-    PID pid_back  = PID(1.0, 2.0, 0.001);
+    PID pid_left  = PID(1.5, 1.5, 0.001);
+    PID pid_right = PID(1.5, 1.5, 0.001);
+    PID pid_back  = PID(1.5, 1.5, 0.001);
 
     Robot(ros::NodeHandle* nh) {
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
