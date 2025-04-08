@@ -212,9 +212,11 @@ public:
                                    (elapsed > COMMAND_TIMEOUT);
     
                 if (zeroCommand) {
-                    target_rpm_left  = 0.0;
-                    target_rpm_right = 0.0;
-                    target_rpm_back  = 0.0;
+                    // Stop the robot
+                    final_left = 0;
+                    final_right = 0;
+                    final_back = 0;
+
                     // Reset PID state for all wheels
                     pid_left.integral = 0.0;
                     pid_left.prev_error = 0.0;
