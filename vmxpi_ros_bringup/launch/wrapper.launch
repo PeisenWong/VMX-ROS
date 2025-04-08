@@ -4,14 +4,14 @@
 	<!-- <node pkg="vmxpi_ros_bringup" name="test_node" type="test_node" output="screen"/> -->
 
 	<param name="pid/left/p" value="0.5" />
-	<param name="pid/left/i" value="0.5" />
-	<param name="pid/left/d" value="0.00" />
+	<param name="pid/left/i" value="0.6" />
+	<param name="pid/left/d" value="0.001" />
 	<param name="pid/right/p" value="0.5" />
-	<param name="pid/right/i" value="0.5" />
-	<param name="pid/right/d" value="0.00" />
+	<param name="pid/right/i" value="0.6" />
+	<param name="pid/right/d" value="0.001" />
 	<param name="pid/back/p" value="0.5" />
-	<param name="pid/back/i" value="0.5" />
-	<param name="pid/back/d" value="0.00" />
+	<param name="pid/back/i" value="0.6" />
+	<param name="pid/back/d" value="0.001" />
 
 	<node pkg="vmxpi_ros_bringup" name="main_node" type="main_node" output="screen"/> 
 </launch>
