@@ -267,7 +267,8 @@ public:
                     final_left  = std::max(-1.0, std::min(final_left,  1.0));
                     final_right = std::max(-1.0, std::min(final_right, 1.0));
                     final_back  = std::max(-1.0, std::min(final_back,  1.0));
-    
+                    
+                    ROS_INFO("dt: %.2f", dt);
                     ROS_INFO_STREAM("Measured RPM: left " << meas_rpm_left 
                         << ", right " << meas_rpm_right 
                         << ", back " << meas_rpm_back);
