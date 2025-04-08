@@ -78,7 +78,7 @@ private:
     double target_rpm_left = 0, target_rpm_right = 0, target_rpm_back = 0;
     double meas_rpm_left = 0, meas_rpm_right = 0, meas_rpm_back = 0;
     double final_left = 0, final_right = 0, final_back = 0;
-    int last_left_count, last_right_count, last_back_count;
+    int last_left_count = 0, last_right_count = 0, last_back_count = 0;
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
@@ -120,6 +120,7 @@ public:
 
         // Initialize last_cmd_time
         last_cmd_time = std::chrono::steady_clock::now();
+        last_vel_time = std::chrono::steady_clock::now();
 
         // Start the control loop
         control_loop_thread = std::thread(&Robot::controlLoop, this);
