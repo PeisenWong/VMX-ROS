@@ -224,66 +224,68 @@ public:
                     pid_back.integral = 0.0;
                     pid_back.prev_error = 0.0;
                 }
+                else
+                {
+                    // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
 
-                // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
+                    // if (elapsed > COMMAND_TIMEOUT) {
+                    //     // No cmd_vel received for COMMAND_TIMEOUT seconds, stop the robot
+                    //     cmd_linear_x = 0.0;
+                    //     cmd_linear_y = 0.0;
+                    //     cmd_angular_z = 0.0;
+                    // }
+                    
+                    int current_left  = left_count;
+                    int current_right = right_count;
+                    int current_back  = back_count;
+                    
+                    // Calculate encoder differences since last cycle
+                    int delta_left  = current_left  - last_left_count;
+                    int delta_right = current_right - last_right_count;
+                    int delta_back  = current_back  - last_back_count;
+                    
+                    last_left_count  = current_left;
+                    last_right_count = current_right;
+                    last_back_count  = current_back;
+                    
+                    // Calculate measured RPM for each wheel.
+                    // RPM = (delta_ticks / TPR) / dt * 60.0
+                    meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
+                    meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
+                    meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
-                // if (elapsed > COMMAND_TIMEOUT) {
-                //     // No cmd_vel received for COMMAND_TIMEOUT seconds, stop the robot
-                //     cmd_linear_x = 0.0;
-                //     cmd_linear_y = 0.0;
-                //     cmd_angular_z = 0.0;
-                // }
-                
-                int current_left  = left_count;
-                int current_right = right_count;
-                int current_back  = back_count;
-                
-                // Calculate encoder differences since last cycle
-                int delta_left  = current_left  - last_left_count;
-                int delta_right = current_right - last_right_count;
-                int delta_back  = current_back  - last_back_count;
-                
-                last_left_count  = current_left;
-                last_right_count = current_right;
-                last_back_count  = current_back;
-                
-                // Calculate measured RPM for each wheel.
-                // RPM = (delta_ticks / TPR) / dt * 60.0
-                meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-                meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
-                meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
+                    // Compute motor speeds using the latest cmd_vel
+                    holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
 
-                // Compute motor speeds using the latest cmd_vel
-                holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
+                    double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
+                    double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, dt);
+                    double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, dt);
+                    
+                    const double max_motor_rpm = 160.0;
 
-                double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
-                double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, dt);
-                double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, dt);
-                
-                const double max_motor_rpm = 160.0;
+                    final_left  = output_left  / max_motor_rpm;
+                    final_right = output_right / max_motor_rpm;
+                    final_back  = output_back  / max_motor_rpm;
 
-                final_left  = output_left  / max_motor_rpm;
-                final_right = output_right / max_motor_rpm;
-                final_back  = output_back  / max_motor_rpm;
+                    // Clamp motor speeds to [-1.0, 1.0]
+                    final_left  = std::max(-1.0, std::min(final_left,  1.0));
+                    final_right = std::max(-1.0, std::min(final_right, 1.0));
+                    final_back  = std::max(-1.0, std::min(final_back,  1.0));
 
-                // Clamp motor speeds to [-1.0, 1.0]
-                final_left  = std::max(-1.0, std::min(final_left,  1.0));
-                final_right = std::max(-1.0, std::min(final_right, 1.0));
-                final_back  = std::max(-1.0, std::min(final_back,  1.0));
+                    // ROS_INFO("Final: left: %.2f, right: %.2f, back: %.2f", final_left, final_right, final_back);
+                    ROS_INFO_STREAM("Measured RPM: left " << meas_rpm_left 
+                        << ", right " << meas_rpm_right 
+                        << ", back " << meas_rpm_back);
+                    ROS_INFO_STREAM("PID output: left " << output_left 
+                        << ", right " << output_right 
+                        << ", back " << output_back);
+                    ROS_INFO_STREAM("Target RPM: left " << target_rpm_left 
+                        << ", right " << target_rpm_right 
+                        << ", back " << target_rpm_back);
 
-                // ROS_INFO("Final: left: %.2f, right: %.2f, back: %.2f", final_left, final_right, final_back);
-                ROS_INFO_STREAM("Measured RPM: left " << meas_rpm_left 
-                    << ", right " << meas_rpm_right 
-                    << ", back " << meas_rpm_back);
-                ROS_INFO_STREAM("PID output: left " << output_left 
-                    << ", right " << output_right 
-                    << ", back " << output_back);
-                ROS_INFO_STREAM("Target RPM: left " << target_rpm_left 
-                    << ", right " << target_rpm_right 
-                    << ", back " << target_rpm_back);
-
-                // Publish motor commands
-                publish_motors();
+                    // Publish motor commands
+                    publish_motors();
+                }
             }
             rate.sleep();
         }
