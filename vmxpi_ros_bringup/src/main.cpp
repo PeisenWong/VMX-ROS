@@ -90,12 +90,38 @@ public:
     ros::Subscriber enc0_sub, enc1_sub, enc2_sub;
     ros::Subscriber vel_sub;
 
-    // PID controllers for each wheel (tuned gains are example values)
-    PID pid_left  = PID(1.5, 1.0, 0.001);
-    PID pid_right = PID(1.5, 1.0, 0.001);
-    PID pid_back  = PID(1.5, 1.0, 0.001);
+    // PID controllers for each wheel (tuned gains loaded from ROS parameters)
+    PID pid_left;
+    PID pid_right;
+    PID pid_back;
 
-    Robot(ros::NodeHandle* nh) {
+    Robot(ros::NodeHandle* nh)
+      : pid_left(1.5, 1.0, 0.001),  // temporary default values; will be updated from params
+        pid_right(1.5, 1.0, 0.001),
+        pid_back(1.5, 1.0, 0.001)
+    {
+        // Get PID parameters from ROS parameters
+        double p_left, i_left, d_left;
+        double p_right, i_right, d_right;
+        double p_back, i_back, d_back;
+        
+        nh->param("pid/left/p", p_left, 1.0);
+        nh->param("pid/left/i", i_left, 1.0);
+        nh->param("pid/left/d", d_left, 0.001);
+        
+        nh->param("pid/right/p", p_right, 1.0);
+        nh->param("pid/right/i", i_right, 1.0);
+        nh->param("pid/right/d", d_right, 0.001);
+        
+        nh->param("pid/back/p", p_back, 1.0);
+        nh->param("pid/back/i", i_back, 1.0);
+        nh->param("pid/back/d", d_back, 0.001);
+        
+        // Re-initialize our PID objects with the fetched parameters
+        pid_left = PID(p_left, i_left, d_left);
+        pid_right = PID(p_right, i_right, d_right);
+        pid_back = PID(p_back, i_back, d_back);
+
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
 
         motor0_dist = nh->subscribe("titan/encoder0/distance", 1, motor0Callback);
@@ -118,7 +144,7 @@ public:
         // Subscribe to cmd_vel topic
         vel_sub = nh->subscribe<geometry_msgs::Twist>("cmd_vel", 10, &Robot::cmdVelCallback, this);
 
-        // Initialize last_cmd_time
+        // Initialize timers
         last_cmd_time = std::chrono::steady_clock::now();
         last_vel_time = std::chrono::steady_clock::now();
 
@@ -151,28 +177,14 @@ public:
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
         backSpeed = 0.67 * y - 0.33 * z;
 
-        // Convert to angular vel
+        // Convert to angular velocity and then to RPM
         target_w_left = leftSpeed / r;
         target_w_right = rightSpeed / r;
         target_w_back = backSpeed / r;
 
-        // Convert to rpm
         target_rpm_left = target_w_left * 60 / (2 * PI);
         target_rpm_right = target_w_right * 60 / (2 * PI);
         target_rpm_back = target_w_back * 60 / (2 * PI);
-
-        // double max_speed = std::abs(rightSpeed);
-        // if (std::abs(leftSpeed) > max_speed) {
-        //     max_speed = std::abs(leftSpeed);
-        // }
-        // if (std::abs(backSpeed) > max_speed) {
-        //     max_speed = std::abs(backSpeed);
-        // }
-        // if (max_speed > 1.0) {
-        //     rightSpeed /= max_speed;
-        //     leftSpeed /= max_speed;
-        //     backSpeed /= max_speed;
-        // }
     }
 
     void publish_motors() {
@@ -208,11 +220,6 @@ public:
                 auto now = std::chrono::steady_clock::now();
                 // Compute dt since last velocity update
                 double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
-                // if (dt < 1e-4 || dt > 0.1) {  // adjust thresholds as appropriate
-                //     last_vel_time = now;
-                //     rate.sleep();
-                //     continue;
-                // }
                 last_vel_time = now;
     
                 // Calculate elapsed time since the last received velocity command
@@ -227,7 +234,7 @@ public:
                     final_left = 0;
                     final_right = 0;
                     final_back = 0;
-
+    
                     // Reset PID state for all wheels
                     pid_left.integral = 0.0;
                     pid_left.prev_error = 0.0;
