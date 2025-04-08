@@ -207,7 +207,7 @@ public:
                 // }
                 last_vel_time = now;
 
-                double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
+                double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
                 bool zeroCommand = (std::abs(cmd_linear_x) < 1e-6 &&
                                     std::abs(cmd_linear_y) < 1e-6 &&
                                     std::abs(cmd_angular_z) < 1e-6) ||
