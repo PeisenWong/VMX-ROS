@@ -7,7 +7,7 @@
 	<param name="pid/left/i" value="0.65" />
 	<param name="pid/left/d" value="0.001" />
 	<param name="pid/right/p" value="0.5" />
-	<param name="pid/right/i" value="0.65" />
+	<param name="pid/right/i" value="0.75" />
 	<param name="pid/right/d" value="0.001" />
 	<param name="pid/back/p" value="0.5" />
 	<param name="pid/back/i" value="0.65" />
