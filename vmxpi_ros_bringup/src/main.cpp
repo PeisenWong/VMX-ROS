@@ -213,7 +213,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); // 10 Hz control loop
+        ros::Rate rate(20); // 10 Hz control loop
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -280,16 +280,18 @@ public:
                     final_right = std::max(-1.0, std::min(final_right, 1.0));
                     final_back  = std::max(-1.0, std::min(final_back,  1.0));
                     
-                    ROS_INFO("dt: %.2f", dt);
-                    ROS_INFO_STREAM("Measured RPM: left " << meas_rpm_left 
-                        << ", right " << meas_rpm_right 
-                        << ", back " << meas_rpm_back);
-                    ROS_INFO_STREAM("PID output: left " << output_left 
-                        << ", right " << output_right 
-                        << ", back " << output_back);
-                    ROS_INFO_STREAM("Target RPM: left " << target_rpm_left 
-                        << ", right " << target_rpm_right 
-                        << ", back " << target_rpm_back);
+                    ROS_INFO("----- PID DEBUG -----");
+                    ROS_INFO("Wheel       | Target RPM | Measured RPM | Error    | Integral | Derivative | PID Output");
+                    ROS_INFO("Left wheel  | %9.2f | %12.2f | %8.2f | %8.2f | %10.2f | %10.2f",
+                             target_rpm_left, meas_rpm_left, pid_left.prev_error, pid_left.integral,
+                             (pid_left.prev_error - pid_left.integral) / dt, output_left);
+                    ROS_INFO("Right wheel | %9.2f | %12.2f | %8.2f | %8.2f | %10.2f | %10.2f",
+                             target_rpm_right, meas_rpm_right, pid_right.prev_error, pid_right.integral,
+                             (pid_right.prev_error - pid_right.integral) / dt, output_right);
+                    ROS_INFO("Back wheel  | %9.2f | %12.2f | %8.2f | %8.2f | %10.2f | %10.2f",
+                             target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
+                             (pid_back.prev_error - pid_back.integral) / dt, output_back);
+                    ROS_INFO("---------------------");
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
