@@ -10,6 +10,7 @@
 #include <mutex>
 #include <thread>
 #include "geometry_msgs/Twist.h"
+#include <fstream>
 
 std::mutex command_mutex;  // Protects shared data
 
@@ -100,6 +101,11 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
+        std::ofstream log_file("rpm_log.csv", std::ios::out | std::ios::trunc);
+        if (log_file.is_open()) {
+            log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
+        }
+
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
@@ -173,9 +179,12 @@ public:
     void holonomicDrive(double x, double y, double z) {
         const double r = 0.051;
 
-        rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
-        leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
-        backSpeed = 0.67 * y - 0.33 * z;
+        // rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
+        // leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
+        // backSpeed = 0.67 * y - 0.33 * z;
+        rightSpeed = -0.58;
+        leftSpeed = 0.58;
+        backSpeed = 0.58;
 
         // Convert to angular velocity and then to RPM
         target_w_left = leftSpeed / r;
@@ -292,6 +301,13 @@ public:
                              target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
+
+                    if (log_file.is_open()) {
+                        log_file << ros::Time::now().toSec() << ","
+                                 << target_rpm_left << "," << meas_rpm_left << ","
+                                 << target_rpm_right << "," << meas_rpm_right << ","
+                                 << target_rpm_back << "," << meas_rpm_back << "\n";
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
@@ -304,6 +320,9 @@ public:
     ~Robot() {
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
+        }
+        if (log_file.is_open()) {
+            log_file.close();
         }
     }
 
