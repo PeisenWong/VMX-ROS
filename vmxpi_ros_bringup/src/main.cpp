@@ -214,7 +214,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(90); 
+        ros::Rate rate(100); 
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
