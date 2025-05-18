@@ -179,12 +179,9 @@ public:
     void holonomicDrive(double x, double y, double z) {
         const double r = 0.051;
 
-        // rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
-        // leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
-        // backSpeed = 0.67 * y - 0.33 * z;
-        rightSpeed = -0.58;
-        leftSpeed = 0.58;
-        backSpeed = 0.58;
+        rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
+        leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
+        backSpeed = 0.67 * y - 0.33 * z;
 
         // Convert to angular velocity and then to RPM
         target_w_left = leftSpeed / r;
@@ -222,7 +219,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(20); // 10 Hz control loop
+        ros::Rate rate(20); 
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
