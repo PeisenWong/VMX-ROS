@@ -313,6 +313,10 @@ public:
                         fflush(rpm_log_fp);
                         ROS_INFO("Collecting data.....")
                     }
+                    else
+                    {
+                        ROS_INFO("BRUH");
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
