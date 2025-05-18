@@ -103,14 +103,8 @@ public:
         pid_back(1.5, 1.0, 0.001)
     {
         std::string path = "/home/pi/rpm_log.csv";
-        log_file.open(path, std::ios::out);
-                
-        if (log_file.is_open()) {
-            ROS_INFO_STREAM("✅ Log file created at: " << path);
-            log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
-        } else {
-            ROS_ERROR_STREAM("❌ Failed to open log file at: " << path);
-        }
+        log_file.open(path, std::ios::out | std::ios::trunc);
+        log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
 
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
@@ -305,13 +299,10 @@ public:
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
 
-                    if (log_file.is_open()) {
-                        log_file << ros::Time::now().toSec() << ","
-                                 << target_rpm_left << "," << meas_rpm_left << ","
-                                 << target_rpm_right << "," << meas_rpm_right << ","
-                                 << target_rpm_back << "," << meas_rpm_back << "\n";
-                        ROS_INFO("Collecting...");
-                    }
+                    log_file << ros::Time::now().toSec() << ","
+                                << target_rpm_left << "," << meas_rpm_left << ","
+                                << target_rpm_right << "," << meas_rpm_right << ","
+                                << target_rpm_back << "," << meas_rpm_back << "\n";
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
@@ -324,9 +315,8 @@ public:
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
         }
-        if (log_file.is_open()) {
-            log_file.close();
-        }
+        log_file.close();
+        
     }
 
 };
