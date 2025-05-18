@@ -82,7 +82,6 @@ private:
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
-    FILE* rpm_log_fp = nullptr;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -103,8 +102,8 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        rpm_log_fp = fopen("/home/pi/rpm_log.csv", "w");
-        if (rpm_log_fp) {
+        rpm_log_fp = fopen("/tmp/rpm_log.csv", "w");
+        if (rpm_log_fp != NULL) {
             fprintf(rpm_log_fp, "timestamp,left_target,left_measured,right_target,right_measured,back_target,back_measured\n");
             fflush(rpm_log_fp);
         } else {
@@ -305,7 +304,7 @@ public:
                     ROS_INFO("---------------------");
 
                     double ts = ros::Time::now().toSec();
-                    if (rpm_log_fp) {
+                    if (rpm_log_fp != NULL) {
                         fprintf(rpm_log_fp, "%.6f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
                                 ts,
                                 target_rpm_left, meas_rpm_left,
@@ -326,7 +325,7 @@ public:
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
         }
-        if (rpm_log_fp) {
+        if (rpm_log_fp != NULL) {
             fclose(rpm_log_fp);
         }
     }
