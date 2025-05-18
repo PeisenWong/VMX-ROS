@@ -340,9 +340,6 @@ int main(int argc, char** argv) {
     // DigitalInputROS button1(&nh, &vmx, 11);
     // ROS_INFO("Digital Input is now started");
 
-    TitanDriverROSWrapper titan(&nh, &vmx);
-    ROS_INFO("Titan driver is now started");
-
     const char* path = "/tmp/rpm_log.csv";
     rpm_log_fp = fopen(path, "w");
     if (rpm_log_fp) {
@@ -357,6 +354,9 @@ int main(int argc, char** argv) {
         ros::console::flush();
         return -1; 
     }
+    
+    TitanDriverROSWrapper titan(&nh, &vmx);
+    ROS_INFO("Titan driver is now started");
 
     // navXROSWrapper navx(&nh, &vmx);
     // ROS_INFO("navX driver is now started");
