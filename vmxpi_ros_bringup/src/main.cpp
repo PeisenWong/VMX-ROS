@@ -102,7 +102,9 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        log_file.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
+        std::string path = "/home/pi/rpm_log.csv";
+        log_file.open(path, std::ios::out | std::ios::trunc);
+                
         if (log_file.is_open()) {
             ROS_INFO_STREAM("✅ Log file created at: " << path);
             log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
