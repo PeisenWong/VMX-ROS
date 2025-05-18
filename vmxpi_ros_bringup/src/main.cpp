@@ -19,6 +19,7 @@ static double left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
 static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
+FILE* rpm_log_fp = nullptr;
 
 struct PID {
     double kp, ki, kd;
@@ -102,18 +103,6 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        const char* path = "/tmp/rpm_log.csv";
-        rpm_log_fp = fopen(path, "w");
-        
-        if (rpm_log_fp) {
-            ROS_INFO_STREAM("✅ Logging to file (C-style): " << path);
-            fprintf(rpm_log_fp, "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n");
-            fflush(rpm_log_fp);
-        } else {
-            ROS_ERROR_STREAM("❌ fopen() failed: Cannot write to file at " << path);
-            perror("fopen");
-        }
-
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
@@ -309,11 +298,11 @@ public:
 
                     if (rpm_log_fp) {
                         fprintf(rpm_log_fp, "%.3f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
-                                ros::Time::now().toSec(),
-                                target_rpm_left, meas_rpm_left,
-                                target_rpm_right, meas_rpm_right,
-                                target_rpm_back, meas_rpm_back);
-                        fflush(rpm_log_fp);  // flush to disk every time
+                            ros::Time::now().toSec(),
+                            target_rpm_left, meas_rpm_left,
+                            target_rpm_right, meas_rpm_right,
+                            target_rpm_back, meas_rpm_back);
+                        fflush(rpm_log_fp);
                     }
                 }
                 // Publish motor commands every loop iteration
@@ -327,11 +316,6 @@ public:
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
         }
-        if (rpm_log_fp) {
-            fclose(rpm_log_fp);
-            rpm_log_fp = nullptr;
-        }
-        
     }
 
 };
@@ -359,6 +343,18 @@ int main(int argc, char** argv) {
     TitanDriverROSWrapper titan(&nh, &vmx);
     ROS_INFO("Titan driver is now started");
 
+    const char* path = "/tmp/rpm_log.csv";
+    rpm_log_fp = fopen(path, "w");
+    if (rpm_log_fp) {
+        ROS_INFO_STREAM("✅ Successfully opened log file at: " << path);
+        fprintf(rpm_log_fp, "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n");
+        fflush(rpm_log_fp);
+    } else {
+        ROS_ERROR_STREAM("❌ Failed to open log file at: " << path);
+        perror("fopen");
+        return -1; // Exit if unable to log
+    }
+
     // navXROSWrapper navx(&nh, &vmx);
     // ROS_INFO("navX driver is now started");
 
@@ -366,6 +362,11 @@ int main(int argc, char** argv) {
     Robot robot(&nh);
 
     ros::waitForShutdown();
+    if (rpm_log_fp) {
+        fclose(rpm_log_fp);
+        rpm_log_fp = nullptr;
+        ROS_INFO_STREAM("✅ Closed log file.");
+    }
 
     ROS_INFO("ROS SHUTDOWN");
     return 0;
