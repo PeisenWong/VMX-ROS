@@ -102,9 +102,8 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        ROS_WARN("🚨 Robot constructor called — attempting to create log file...");
         std::string path = "/home/pi/rpm_log.csv";
-        log_file.open(path, std::ios::out | std::ios::trunc);
+        log_file.open(path, std::ios::out);
                 
         if (log_file.is_open()) {
             ROS_INFO_STREAM("✅ Log file created at: " << path);
@@ -311,6 +310,7 @@ public:
                                  << target_rpm_left << "," << meas_rpm_left << ","
                                  << target_rpm_right << "," << meas_rpm_right << ","
                                  << target_rpm_back << "," << meas_rpm_back << "\n";
+                        ROS_INFO("Collecting...");
                     }
                 }
                 // Publish motor commands every loop iteration
@@ -320,7 +320,6 @@ public:
         }
     }
     
-
     ~Robot() {
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
