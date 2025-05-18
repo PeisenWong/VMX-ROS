@@ -104,9 +104,9 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        rpm_log.open("/tmp/rpm_log.csv", std::ios::out | std::ios::trunc);
+        rpm_log.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
         if (!rpm_log.is_open()) {
-            ROS_FATAL("Could not open /tmp/rpm_log.csv: %s", strerror(errno));
+            ROS_FATAL("Could not open /home/pi/rpm_log.csv: %s", strerror(errno));
         } else {
         rpm_log << "timestamp,left_target,left_measured,"
                 << "right_target,right_measured,"
