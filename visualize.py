@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the logged data
-df = pd.read_csv("rpm_log.csv")
+df = pd.read_csv("/home/pi/rpm_log.csv")
 
 # Plot all 3 wheels
 plt.figure(figsize=(12, 8))
