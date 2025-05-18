@@ -102,7 +102,7 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        log_file.open("rpm_log.csv", std::ios::out | std::ios::trunc);
+        log_file.open("~/rpm_log.csv", std::ios::out | std::ios::trunc);
         if (log_file.is_open()) {
             log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
         }
