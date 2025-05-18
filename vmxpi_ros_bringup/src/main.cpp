@@ -104,7 +104,10 @@ public:
     {
         log_file.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
         if (log_file.is_open()) {
+            ROS_INFO_STREAM("✅ Log file created at: " << path);
             log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
+        } else {
+            ROS_ERROR_STREAM("❌ Failed to open log file at: " << path);
         }
 
         // Get PID parameters from ROS parameters
