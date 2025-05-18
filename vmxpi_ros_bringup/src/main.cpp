@@ -10,6 +10,7 @@
 #include <mutex>
 #include <thread>
 #include "geometry_msgs/Twist.h"
+#include <fstream>
 
 std::mutex command_mutex;  // Protects shared data
 
@@ -18,6 +19,7 @@ static double left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
 static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
+std::ofstream rpm_log;
 
 struct PID {
     double kp, ki, kd;
@@ -102,14 +104,6 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        rpm_log_fp = fopen("/tmp/rpm_log.csv", "w");
-        if (rpm_log_fp != NULL) {
-            fprintf(rpm_log_fp, "timestamp,left_target,left_measured,right_target,right_measured,back_target,back_measured\n");
-            fflush(rpm_log_fp);
-        } else {
-            ROS_ERROR("Failed to open rpm_log.csv for writing");
-        }
-
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
@@ -302,21 +296,16 @@ public:
                              target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
+                }
 
-                    double ts = ros::Time::now().toSec();
-                    if (rpm_log_fp != NULL) {
-                        fprintf(rpm_log_fp, "%.6f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
-                                ts,
-                                target_rpm_left, meas_rpm_left,
-                                target_rpm_right, meas_rpm_right,
-                                target_rpm_back, meas_rpm_back);
-                        fflush(rpm_log_fp);
-                        ROS_INFO("Collecting data.....")
-                    }
-                    else
-                    {
-                        ROS_INFO("BRUH");
-                    }
+                double ts = ros::Time::now().toSec();
+                if (rpm_log.is_open()) {
+                    rpm_log 
+                        << ts << ","
+                        << target_rpm_left  << "," << meas_rpm_left  << ","
+                        << target_rpm_right << "," << meas_rpm_right << ","
+                        << target_rpm_back  << "," << meas_rpm_back   << "\n";
+                    rpm_log.flush();
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
@@ -329,8 +318,8 @@ public:
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
         }
-        if (rpm_log_fp != NULL) {
-            fclose(rpm_log_fp);
+        if (rpm_log.is_open()) {
+            rpm_log.close();
         }
     }
 
@@ -338,6 +327,17 @@ public:
 
 int main(int argc, char** argv) {
     system("/usr/local/frc/bin/frcKillRobot.sh");
+
+    rpm_log.open("/tmp/rpm_log.csv", std::ios::out | std::ios::trunc);
+    if (!rpm_log.is_open()) {
+        ROS_ERROR("Failed to open /tmp/rpm_log.csv for writing");
+    } else {
+        rpm_log << "timestamp,"
+                << "left_target,left_measured,"
+                << "right_target,right_measured,"
+                << "back_target,back_measured\n";
+        rpm_log.flush();
+    }
 
     ROS_INFO_STREAM("Main thread: " << syscall(SYS_gettid));
 
