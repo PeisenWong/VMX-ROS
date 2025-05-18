@@ -343,18 +343,14 @@ int main(int argc, char** argv) {
     const char* path = "/tmp/rpm_log.csv";
     rpm_log_fp = fopen(path, "w");
     if (rpm_log_fp) {
-        fprintf(stderr, "✅ fopen succeeded: %s\n", path);
-        ROS_INFO_STREAM("✅ Successfully opened log file at: " << path << std::flush);
-        ros::console::flush();
+        ROS_INFO("OKkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk\n");
         fprintf(rpm_log_fp, "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n");
         fflush(rpm_log_fp);
     } else {
-        perror("❌ fopen failed");
-        ROS_ERROR_STREAM("❌ Failed to open log file at: " << path << std::flush);
-        ros::console::flush();
+        ROS_INFO("Bruhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n");
         return -1; 
     }
-    
+
     TitanDriverROSWrapper titan(&nh, &vmx);
     ROS_INFO("Titan driver is now started");
 
