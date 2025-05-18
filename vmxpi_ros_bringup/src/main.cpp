@@ -312,6 +312,7 @@ public:
                                 target_rpm_right, meas_rpm_right,
                                 target_rpm_back, meas_rpm_back);
                         fflush(rpm_log_fp);
+                        ROS_INFO("Collecting data.....")
                     }
                 }
                 // Publish motor commands every loop iteration
