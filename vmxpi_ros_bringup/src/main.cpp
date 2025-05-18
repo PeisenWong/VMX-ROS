@@ -346,13 +346,16 @@ int main(int argc, char** argv) {
     const char* path = "/tmp/rpm_log.csv";
     rpm_log_fp = fopen(path, "w");
     if (rpm_log_fp) {
-        ROS_INFO("✅ Successfully opened log file at: " << path);
+        fprintf(stderr, "✅ fopen succeeded: %s\n", path);
+        ROS_INFO_STREAM("✅ Successfully opened log file at: " << path << std::flush);
+        ros::console::flush();
         fprintf(rpm_log_fp, "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n");
         fflush(rpm_log_fp);
     } else {
-        ROS_ERROR("❌ Failed to open log file at: " << path);
-        perror("fopen");
-        return -1; // Exit if unable to log
+        perror("❌ fopen failed");
+        ROS_ERROR_STREAM("❌ Failed to open log file at: " << path << std::flush);
+        ros::console::flush();
+        return -1; 
     }
 
     // navXROSWrapper navx(&nh, &vmx);
