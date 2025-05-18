@@ -19,7 +19,6 @@ static double left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
 static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
-std::ofstream rpm_log;
 
 struct PID {
     double kp, ki, kd;
@@ -84,6 +83,7 @@ private:
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
+    std::ofstream rpm_log;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -104,6 +104,16 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
+        rpm_log.open("/tmp/rpm_log.csv", std::ios::out | std::ios::trunc);
+        if (!rpm_log.is_open()) {
+            ROS_FATAL("Could not open /tmp/rpm_log.csv: %s", strerror(errno));
+        } else {
+        rpm_log << "timestamp,left_target,left_measured,"
+                << "right_target,right_measured,"
+                << "back_target,back_measured\n";
+        rpm_log.flush();
+        }
+
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
@@ -327,17 +337,6 @@ public:
 
 int main(int argc, char** argv) {
     system("/usr/local/frc/bin/frcKillRobot.sh");
-
-    rpm_log.open("/tmp/rpm_log.csv", std::ios::out | std::ios::trunc);
-    if (!rpm_log.is_open()) {
-        ROS_ERROR("Failed to open /tmp/rpm_log.csv for writing");
-    } else {
-        rpm_log << "timestamp,"
-                << "left_target,left_measured,"
-                << "right_target,right_measured,"
-                << "back_target,back_measured\n";
-        rpm_log.flush();
-    }
 
     ROS_INFO_STREAM("Main thread: " << syscall(SYS_gettid));
 
