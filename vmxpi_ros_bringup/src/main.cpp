@@ -83,6 +83,7 @@ private:
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
+    std::ofstream log_file;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -101,7 +102,7 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        std::ofstream log_file("rpm_log.csv", std::ios::out | std::ios::trunc);
+        log_file.open("rpm_log.csv", std::ios::out | std::ios::trunc);
         if (log_file.is_open()) {
             log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
         }
