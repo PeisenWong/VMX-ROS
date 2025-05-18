@@ -83,7 +83,7 @@ private:
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
-    std::ofstream log_file;
+    FILE* rpm_log_fp = nullptr;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -102,9 +102,17 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        std::string path = "/home/pi/rpm_log.csv";
-        log_file.open(path, std::ios::out | std::ios::trunc);
-        log_file << "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n";
+        const char* path = "/home/pi/rpm_log.csv";
+        rpm_log_fp = fopen(path, "w");
+        
+        if (rpm_log_fp) {
+            ROS_INFO_STREAM("✅ Logging to file (C-style): " << path);
+            fprintf(rpm_log_fp, "time,target_left,measured_left,target_right,measured_right,target_back,measured_back\n");
+            fflush(rpm_log_fp);
+        } else {
+            ROS_ERROR_STREAM("❌ fopen() failed: Cannot write to file at " << path);
+            perror("fopen");
+        }
 
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
@@ -299,10 +307,14 @@ public:
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
 
-                    log_file << ros::Time::now().toSec() << ","
-                                << target_rpm_left << "," << meas_rpm_left << ","
-                                << target_rpm_right << "," << meas_rpm_right << ","
-                                << target_rpm_back << "," << meas_rpm_back << "\n";
+                    if (rpm_log_fp) {
+                        fprintf(rpm_log_fp, "%.3f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+                                ros::Time::now().toSec(),
+                                target_rpm_left, meas_rpm_left,
+                                target_rpm_right, meas_rpm_right,
+                                target_rpm_back, meas_rpm_back);
+                        fflush(rpm_log_fp);  // flush to disk every time
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
@@ -315,7 +327,10 @@ public:
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
         }
-        log_file.close();
+        if (rpm_log_fp) {
+            fclose(rpm_log_fp);
+            rpm_log_fp = nullptr;
+        }
         
     }
 
