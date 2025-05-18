@@ -102,7 +102,7 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
-        const char* path = "/home/pi/rpm_log.csv";
+        const char* path = "/tmp/rpm_log.csv";
         rpm_log_fp = fopen(path, "w");
         
         if (rpm_log_fp) {
