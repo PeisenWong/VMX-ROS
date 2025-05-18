@@ -96,11 +96,21 @@ public:
     PID pid_right;
     PID pid_back;
 
+    FILE* rpm_log_fp;
+
     Robot(ros::NodeHandle* nh)
       : pid_left(1.5, 1.0, 0.001),  // temporary default values; will be updated from params
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
+        rpm_log_fp = fopen("/home/pi/rpm_log.csv", "w");
+        if (rpm_log_fp) {
+            fprintf(rpm_log_fp, "timestamp,left_target,left_measured,right_target,right_measured,back_target,back_measured\n");
+            fflush(rpm_log_fp);
+        } else {
+            ROS_ERROR("Failed to open rpm_log.csv for writing");
+        }
+
         // Get PID parameters from ROS parameters
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
@@ -293,6 +303,16 @@ public:
                              target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
+
+                    double ts = ros::Time::now().toSec();
+                    if (rpm_log_fp) {
+                        fprintf(rpm_log_fp, "%.6f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+                                ts,
+                                target_rpm_left, meas_rpm_left,
+                                target_rpm_right, meas_rpm_right,
+                                target_rpm_back, meas_rpm_back);
+                        fflush(rpm_log_fp);
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
@@ -304,6 +324,9 @@ public:
     ~Robot() {
         if (control_loop_thread.joinable()) {
             control_loop_thread.join();
+        }
+        if (rpm_log_fp) {
+            fclose(rpm_log_fp);
         }
     }
 
