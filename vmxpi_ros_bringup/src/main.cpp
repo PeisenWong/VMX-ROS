@@ -345,9 +345,9 @@ public:
                     // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                     // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
-                    ABTStep(&fleft_pos_data);
-                    ABTStep(&fright_pos_data);
-                    ABTStep(&fback_pos_data);
+                    ABT(&fleft_pos_data);
+                    ABT(&fright_pos_data);
+                    ABT(&fback_pos_data);
 
                     meas_rpm_left  = (fFLeftVel  / r) * 60.0 / (2 * PI);
                     meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * PI);
