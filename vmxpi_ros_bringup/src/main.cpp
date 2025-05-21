@@ -307,7 +307,7 @@ public:
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
 
-                    double ts = ros::Time::now().toSec();
+                    double ts = ros::WallTime::now().toSec();
                     if (rpm_log.is_open()) {
                         rpm_log 
                             << ts << ","
