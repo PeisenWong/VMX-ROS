@@ -84,6 +84,7 @@ private:
     double TPR = 1464;
     std::chrono::steady_clock::time_point last_vel_time;
     std::ofstream rpm_log;
+    std::chrono::steady_clock::time_point start_time;
 public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
@@ -104,6 +105,7 @@ public:
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001)
     {
+        start_time = std::chrono::steady_clock::now();
         rpm_log.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
         if (!rpm_log.is_open()) {
             ROS_FATAL("Could not open /home/pi/rpm_log.csv: %s", strerror(errno));
@@ -307,10 +309,10 @@ public:
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
 
-                    double ts = ros::WallTime::now().toSec();
+                    double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - start_time).count();
                     if (rpm_log.is_open()) {
                         rpm_log 
-                            << ts << ","
+                            << elapsed << ","
                             << target_rpm_left  << "," << meas_rpm_left  << ","
                             << target_rpm_right << "," << meas_rpm_right << ","
                             << target_rpm_back  << "," << meas_rpm_back   << "\n";
