@@ -4,26 +4,22 @@ import matplotlib.pyplot as plt
 # Load the logged data
 df = pd.read_csv("/home/pi/rpm_log.csv")
 
-# Plot all 3 wheels
-plt.figure(figsize=(12, 8))
+# Wheels configuration
+wheels = {
+    'Left': ('left_target', 'left_measured'),
+    'Right': ('right_target', 'right_measured'),
+    'Back': ('back_target', 'back_measured')
+}
 
-# LEFT Wheel
-plt.plot(df["timestamp"], df["left_target"], linestyle='--', label="Target RPM - Left")
-plt.plot(df["timestamp"], df["left_measured"], linestyle='-', label="Measured RPM - Left")
-
-# RIGHT Wheel
-plt.plot(df["timestamp"], df["right_target"], linestyle='--', label="Target RPM - Right")
-plt.plot(df["timestamp"], df["right_measured"], linestyle='-', label="Measured RPM - Right")
-
-# BACK Wheel
-plt.plot(df["timestamp"], df["back_target"], linestyle='--', label="Target RPM - Back")
-plt.plot(df["timestamp"], df["back_measured"], linestyle='-', label="Measured RPM - Back")
-
-# Labels and aesthetics
-plt.title("Target vs Measured RPM (PID Tracking)")
-plt.xlabel("Time (s)")
-plt.ylabel("RPM")
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-plt.show()
+# Plot each wheel in its own figure
+for name, (col_target, col_measured) in wheels.items():
+    plt.figure(figsize=(10, 6))
+    plt.plot(df["timestamp"], df[col_target], linestyle='--', label=f"Target RPM - {name}")
+    plt.plot(df["timestamp"], df[col_measured], linestyle='-', label=f"Measured RPM - {name}")
+    plt.title(f"{name} Wheel: Target vs Measured RPM")
+    plt.xlabel("Time (s)")
+    plt.ylabel("RPM")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
