@@ -42,17 +42,16 @@ struct PID {
 };
 
 struct ABT_t {
-    float sample_time, alpha, beta, gamma;
-    float *input;
-    float *pos_output;
-    float *vel_output;
-    float *acc_output;
+    float alpha, beta, gamma;
+    double *input;
+    double *pos_output;
+    double *vel_output;
+    double *acc_output;
 };
 
-void ABTInit(float samp_time, float a, float b, float g,
-             float *ip, float *pos, float *vel, float *acc, ABT_t *filt)
+void ABTInit(float a, float b, float g,
+    double *ip, double *pos, double *vel, double *acc, ABT_t *filt)
 {
-    filt->sample_time = samp_time;
     filt->alpha       = a;
     filt->beta        = b;
     filt->gamma       = g;
@@ -69,21 +68,21 @@ void ABTEstimateInit(ABT_t *filt)
     *(filt->acc_output) = 0.0f;
 }
 
-void ABT(ABT_t *filt)
+void ABT(ABT_t *filt, double dt)
 {
-    float pos_predict = *(filt->pos_output)
-                      + filt->sample_time  * (*(filt->vel_output))
-                      + 0.5f * filt->sample_time * filt->sample_time * (*(filt->acc_output));
-    float vel_predict = *(filt->vel_output)
-                      + filt->sample_time * (*(filt->acc_output));
+    double pos_predict = *(filt->pos_output)
+                      + dt  * (*(filt->vel_output))
+                      + 0.5f * dt * dt * (*(filt->acc_output));
+    double vel_predict = *(filt->vel_output)
+                      + dt * (*(filt->acc_output));
 
-    float residual = *filt->input - pos_predict;
+    double residual = *filt->input - pos_predict;
 
     *(filt->pos_output) = pos_predict + filt->alpha * residual;
-    *(filt->vel_output) = vel_predict + (filt->beta / filt->sample_time) * residual;
+    *(filt->vel_output) = vel_predict + (filt->beta / dt) * residual;
     *(filt->acc_output) = *(filt->acc_output)
                         + (filt->gamma * 0.5f
-                           / (filt->sample_time * filt->sample_time)) * residual;
+                           / (dt * dt)) * residual;
 }
 
 // Callbacks for Encoder count values
@@ -127,10 +126,10 @@ public:
     PID pid_back;
 
     ABT_t fleft_pos_data, fright_pos_data, fback_pos_data;
-    float rawDistLeft, rawDistRight, rawDistBack;
-    float fFLeftPos, fFLeftVel, fFLeftAcc;
-    float fFRightPos, fFRightVel, fFRightAcc;
-    float fFBackPos, fFBackVel, fFBackAcc;
+    double rawDistLeft, rawDistRight, rawDistBack;
+    double fFLeftPos, fFLeftVel, fFLeftAcc;
+    double fFRightPos, fFRightVel, fFRightAcc;
+    double fFBackPos, fFBackVel, fFBackAcc;
 
     FILE* rpm_log_fp;
 
@@ -174,17 +173,17 @@ public:
 
         float a = 0.8, b = 0.4, g = 0.2;
 
-        ABTInit(0.01, a, b, g,
+        ABTInit(a, b, g,
             &rawDistLeft, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
             &fleft_pos_data);
         ABTEstimateInit(&fleft_pos_data);
 
-        ABTInit(0.01, a, b, g,
+        ABTInit(a, b, g,
                 &rawDistRight, &fFRightPos, &fFRightVel, &fFRightAcc,
                 &fright_pos_data);
         ABTEstimateInit(&fright_pos_data);
 
-        ABTInit(0.01, a, b, g,
+        ABTInit(a, b, g,
                 &rawDistBack, &fFBackPos, &fFBackVel, &fFBackAcc,
                 &fback_pos_data);
         ABTEstimateInit(&fback_pos_data);
@@ -276,7 +275,6 @@ public:
         ros::Rate rate(20); 
         while (ros::ok()) {
             {
-                std::lock_guard<std::mutex> lock(command_mutex);
                 auto now = std::chrono::steady_clock::now();
                 // Compute dt since last velocity update
                 double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
@@ -332,21 +330,38 @@ public:
                     last_back_count  = currB;
 
                     // 2) convert to **distance** (meters)
+                    // L = 2pi*r
+                    // 1 revolution : 1464
+                    // x revolution : delta_ticks
+                    // x (rev) = delta_ticks / 1464
+                    // x(m) = delta_ticks / 1464 * L
                     const double wheelCirc = 2.0 * M_PI * r;
-                    rawDistLeft  = float((dL / TPR) * wheelCirc);
-                    rawDistRight = float((dR / TPR) * wheelCirc);
-                    rawDistBack  = float((dB / TPR) * wheelCirc);
+                    rawDistLeft  = double((dL / TPR) * wheelCirc);
+                    rawDistRight = double((dR / TPR) * wheelCirc);
+                    rawDistBack  = double((dB / TPR) * wheelCirc);
 
-                    ABT(&fleft_pos_data);
-                    ABT(&fright_pos_data);
-                    ABT(&fback_pos_data);
+                    ABT(&fleft_pos_data, dt);
+                    ABT(&fright_pos_data, dt);
+                    ABT(&fback_pos_data, dt);
 
-                    meas_rpm_left  = (fFLeftVel  / r) * 60.0 / (2 * PI);
-                    meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * PI);
-                    meas_rpm_back  = (fFBackVel  / r) * 60.0 / (2 * PI);
+                    // v = rw
+                    // w = RPM / 60 * 2pi
+                    // RPM = w * 60 / (2pi)
+                    // RPM = (v / r) * 60 / (2pi)
+                    meas_rpm_left  = (fFLeftVel  / r) * 60.0 / (2 * M_PI);
+                    meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * M_PI);
+                    meas_rpm_back  = (fFBackVel  / r) * 60.0 / (2 * M_PI);
+
+                    double vx, vy, vz;
+                    {
+                      std::lock_guard<std::mutex> lock(cmd_mutex);
+                      vx = cmd_linear_x;
+                      vy = cmd_linear_y;
+                      vz = cmd_angular_z;
+                    }
     
                     // Compute target speeds using the latest cmd_vel command
-                    holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
+                    holonomicDrive(vx, vy, vz);
     
                     // Compute PID outputs
                     double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
