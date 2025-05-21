@@ -15,7 +15,7 @@
 std::mutex command_mutex;  // Protects shared data
 
 static double leftSpeed = 0.0, rightSpeed = 0.0, backSpeed = 0.0;
-static double left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
+static float left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
 static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
@@ -192,17 +192,17 @@ public:
         float a = 0.8, b = 0.4, g = 0.2;
 
         ABTInit(0.01, a, b, g,
-            &reinterpret_cast<float&>(left_encoder), &fFLeftPos, &fFLeftVel, &fFLeftAcc,
+            &left_encoder, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
             &fleft_pos_data);
         ABTEstimateInit(&fleft_pos_data);
 
         ABTInit(0.01, a, b, g,
-                &reinterpret_cast<float&>(right_encoder), &fFRightPos, &fFRightVel, &fFRightAcc,
+                &right_encoder, &fFRightPos, &fFRightVel, &fFRightAcc,
                 &fright_pos_data);
         ABTEstimateInit(&fright_pos_data);
 
         ABTInit(0.01, a, b, g,
-                &reinterpret_cast<float&>(back_encoder), &fFBackPos, &fFBackVel, &fFBackAcc,
+                &back_encoder, &fFBackPos, &fFBackVel, &fFBackAcc,
                 &fback_pos_data);
         ABTEstimateInit(&fback_pos_data);
 
