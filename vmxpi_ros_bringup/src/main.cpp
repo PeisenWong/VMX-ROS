@@ -127,6 +127,7 @@ private:
     int last_left_count = 0, last_right_count = 0, last_back_count = 0;
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
+    double r = 0.051;
     std::chrono::steady_clock::time_point last_vel_time;
     std::ofstream rpm_log;
     std::chrono::steady_clock::time_point start_time;
@@ -189,7 +190,6 @@ public:
         pid_back = PID(p_back, i_back, d_back);
 
         float a = 0.8, b = 0.4, g = 0.2;
-        double r = 0.051;
 
         ABTInit(0.01, a, b, g,
             &reinterpret_cast<float&>(left_encoder), &fFLeftPos, &fFLeftVel, &fFLeftAcc,
