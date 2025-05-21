@@ -41,6 +41,51 @@ struct PID {
     }
 };
 
+struct ABT_t {
+    float sample_time, alpha, beta, gamma;
+    float *input;
+    float *pos_output;
+    float *vel_output;
+    float *acc_output;
+};
+
+void ABTInit(float samp_time, float a, float b, float g,
+             float *ip, float *pos, float *vel, float *acc, ABT_t *filt)
+{
+    filt->sample_time = samp_time;
+    filt->alpha       = a;
+    filt->beta        = b;
+    filt->gamma       = g;
+    filt->input       = ip;
+    filt->pos_output  = pos;
+    filt->vel_output  = vel;
+    filt->acc_output  = acc;
+}
+
+void ABTEstimateInit(ABT_t *filt)
+{
+    *(filt->pos_output) = 0.0f;
+    *(filt->vel_output) = 0.0f;
+    *(filt->acc_output) = 0.0f;
+}
+
+void ABT(ABT_t *filt)
+{
+    float pos_predict = *(filt->pos_output)
+                      + filt->sample_time  * (*(filt->vel_output))
+                      + 0.5f * filt->sample_time * filt->sample_time * (*(filt->acc_output));
+    float vel_predict = *(filt->vel_output)
+                      + filt->sample_time * (*(filt->acc_output));
+
+    float residual = *filt->input - pos_predict;
+
+    *(filt->pos_output) = pos_predict + filt->alpha * residual;
+    *(filt->vel_output) = vel_predict + (filt->beta / filt->sample_time) * residual;
+    *(filt->acc_output) = *(filt->acc_output)
+                        + (filt->gamma * 0.5f
+                           / (filt->sample_time * filt->sample_time)) * residual;
+}
+
 // Callbacks for Encoder Distance values
 void motor0Callback(const std_msgs::Float32::ConstPtr& msg) {
    left_encoder = msg->data;
@@ -98,6 +143,11 @@ public:
     PID pid_right;
     PID pid_back;
 
+    ABT_t fleft_pos_data, fright_pos_data, fback_pos_data;
+    float fFLeftPos, fFLeftVel, fFLeftAcc;
+    float fFRightPos, fFRightVel, fFRightAcc;
+    float fFBackPos, fFBackVel, fFBackAcc;
+
     FILE* rpm_log_fp;
 
     Robot(ros::NodeHandle* nh)
@@ -137,6 +187,24 @@ public:
         pid_left = PID(p_left, i_left, d_left);
         pid_right = PID(p_right, i_right, d_right);
         pid_back = PID(p_back, i_back, d_back);
+
+        float a = 0.8, b = 0.4, g = 0.2
+        double r = 0.051;
+
+        ABTInit(0.01, a, b, g,
+            &reinterpret_cast<float&>(left_encoder), &fFLeftPos, &fFLeftVel, &fFLeftAcc,
+            &fleft_pos_data);
+        ABTEstimateInit(&fleft_pos_data);
+
+        ABTInit(0.01, a, b, g,
+                &reinterpret_cast<float&>(right_encoder), &fFRightPos, &fFRightVel, &fFRightAcc,
+                &fright_pos_data);
+        ABTEstimateInit(&fright_pos_data);
+
+        ABTInit(0.01, a, b, g,
+                &reinterpret_cast<float&>(back_encoder), &fFBackPos, &fFBackVel, &fFBackAcc,
+                &fback_pos_data);
+        ABTEstimateInit(&fback_pos_data);
 
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
 
@@ -187,7 +255,6 @@ public:
     }
 
     void holonomicDrive(double x, double y, double z) {
-        const double r = 0.051;
 
         rightSpeed = -0.33 * y - 0.58 * x - 0.33 * z;
         leftSpeed = -0.33 * y + 0.58 * x - 0.33 * z;
@@ -229,7 +296,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(10); 
+        ros::Rate rate(100); 
         while (ros::ok()) {
             {
                 std::lock_guard<std::mutex> lock(command_mutex);
@@ -260,23 +327,31 @@ public:
                     pid_back.prev_error = 0.0;
                 } else {
                     // Calculate the encoder differences since the last cycle
-                    int current_left  = left_count;
-                    int current_right = right_count;
-                    int current_back  = back_count;
+                    // int current_left  = left_count;
+                    // int current_right = right_count;
+                    // int current_back  = back_count;
                     
-                    int delta_left  = current_left  - last_left_count;
-                    int delta_right = current_right - last_right_count;
-                    int delta_back  = current_back  - last_back_count;
+                    // int delta_left  = current_left  - last_left_count;
+                    // int delta_right = current_right - last_right_count;
+                    // int delta_back  = current_back  - last_back_count;
                     
-                    last_left_count  = current_left;
-                    last_right_count = current_right;
-                    last_back_count  = current_back;
+                    // last_left_count  = current_left;
+                    // last_right_count = current_right;
+                    // last_back_count  = current_back;
                     
-                    // Calculate measured RPM for each wheel:
-                    // RPM = (delta_ticks / TPR) / dt * 60.0
-                    meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-                    meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
-                    meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
+                    // // Calculate measured RPM for each wheel:
+                    // // RPM = (delta_ticks / TPR) / dt * 60.0
+                    // meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
+                    // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
+                    // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
+
+                    ABTStep(&fleft_pos_data);
+                    ABTStep(&fright_pos_data);
+                    ABTStep(&fback_pos_data);
+
+                    meas_rpm_left  = (fFLeftVel  / r) * 60.0 / (2 * PI);
+                    meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * PI);
+                    meas_rpm_back  = (fFBackVel  / r) * 60.0 / (2 * PI);
     
                     // Compute target speeds using the latest cmd_vel command
                     holonomicDrive(cmd_linear_x, cmd_linear_y, cmd_angular_z);
