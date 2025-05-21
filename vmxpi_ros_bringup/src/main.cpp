@@ -306,16 +306,16 @@ public:
                              target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
-                }
 
-                double ts = ros::Time::now().toSec();
-                if (rpm_log.is_open()) {
-                    rpm_log 
-                        << ts << ","
-                        << target_rpm_left  << "," << meas_rpm_left  << ","
-                        << target_rpm_right << "," << meas_rpm_right << ","
-                        << target_rpm_back  << "," << meas_rpm_back   << "\n";
-                    rpm_log.flush();
+                    double ts = ros::Time::now().toSec();
+                    if (rpm_log.is_open()) {
+                        rpm_log 
+                            << ts << ","
+                            << target_rpm_left  << "," << meas_rpm_left  << ","
+                            << target_rpm_right << "," << meas_rpm_right << ","
+                            << target_rpm_back  << "," << meas_rpm_back   << "\n";
+                        rpm_log.flush();
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
