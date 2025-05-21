@@ -188,7 +188,7 @@ public:
         pid_right = PID(p_right, i_right, d_right);
         pid_back = PID(p_back, i_back, d_back);
 
-        float a = 0.8, b = 0.4, g = 0.2
+        float a = 0.8, b = 0.4, g = 0.2;
         double r = 0.051;
 
         ABTInit(0.01, a, b, g,
