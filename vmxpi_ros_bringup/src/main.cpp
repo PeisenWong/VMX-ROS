@@ -86,23 +86,6 @@ void ABT(ABT_t *filt)
                            / (filt->sample_time * filt->sample_time)) * residual;
 }
 
-// Callbacks for Encoder Distance values
-void motor0Callback(const std_msgs::Float32::ConstPtr& msg) {
-   left_encoder = msg->data;
-}
-void motor1Callback(const std_msgs::Float32::ConstPtr& msg) {
-   right_encoder = msg->data;
-}
-void motor2Callback(const std_msgs::Float32::ConstPtr& msg) {
-   back_encoder = msg->data;
-}
-void angleCallback(const std_msgs::Float32::ConstPtr& msg) {
-    angle = std::abs(msg->data);
-}
-void yawCallback(const std_msgs::Float32::ConstPtr& msg) {
-    angle_t = msg->data;
-}
-
 // Callbacks for Encoder count values
 void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
@@ -135,7 +118,6 @@ public:
     ros::ServiceClient set_m_speed, enable_client, disable_client;
     ros::ServiceClient resetAngle, res_encoder_client, stop_motors_client;
 
-    ros::Subscriber motor0_dist, motor1_dist, motor2_dist, angle_sub, yawAngle_sub;
     ros::Subscriber enc0_sub, enc1_sub, enc2_sub;
     ros::Subscriber vel_sub;
 
@@ -145,6 +127,7 @@ public:
     PID pid_back;
 
     ABT_t fleft_pos_data, fright_pos_data, fback_pos_data;
+    float rawDistLeft, rawDistRight, rawDistBack;
     float fFLeftPos, fFLeftVel, fFLeftAcc;
     float fFRightPos, fFRightVel, fFRightAcc;
     float fFBackPos, fFBackVel, fFBackAcc;
@@ -192,27 +175,21 @@ public:
         float a = 0.8, b = 0.4, g = 0.2;
 
         ABTInit(0.01, a, b, g,
-            &left_encoder, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
+            &rawDistLeft, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
             &fleft_pos_data);
         ABTEstimateInit(&fleft_pos_data);
 
         ABTInit(0.01, a, b, g,
-                &right_encoder, &fFRightPos, &fFRightVel, &fFRightAcc,
+                &rawDistRight, &fFRightPos, &fFRightVel, &fFRightAcc,
                 &fright_pos_data);
         ABTEstimateInit(&fright_pos_data);
 
         ABTInit(0.01, a, b, g,
-                &back_encoder, &fFBackPos, &fFBackVel, &fFBackAcc,
+                &rawDistBack, &fFBackPos, &fFBackVel, &fFBackAcc,
                 &fback_pos_data);
         ABTEstimateInit(&fback_pos_data);
 
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
-
-        motor0_dist = nh->subscribe("titan/encoder0/distance", 1, motor0Callback);
-        motor1_dist = nh->subscribe("titan/encoder1/distance", 1, motor1Callback);
-        motor2_dist = nh->subscribe("titan/encoder2/distance", 1, motor2Callback);
-        angle_sub = nh->subscribe("navx/angle", 1, angleCallback);
-        yawAngle_sub = nh->subscribe("navx/yaw", 1, yawCallback);
 
         enc0_sub = nh->subscribe("titan/encoder0/count", 1, enc0Callback);
         enc1_sub = nh->subscribe("titan/encoder1/count", 1, enc1Callback);
@@ -344,6 +321,21 @@ public:
                     // meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
                     // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                     // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
+
+                    // 1) delta counts
+                    int currL = left_count, currR = right_count, currB = back_count;
+                    int dL = currL - last_left_count;
+                    int dR = currR - last_right_count;
+                    int dB = currB - last_back_count;
+                    last_left_count  = currL;
+                    last_right_count = currR;
+                    last_back_count  = currB;
+
+                    // 2) convert to **distance** (meters)
+                    const double wheelCirc = 2.0 * M_PI * r;
+                    rawDistLeft  = float((dL / TPR) * wheelCirc);
+                    rawDistRight = float((dR / TPR) * wheelCirc);
+                    rawDistBack  = float((dB / TPR) * wheelCirc);
 
                     ABT(&fleft_pos_data);
                     ABT(&fright_pos_data);
