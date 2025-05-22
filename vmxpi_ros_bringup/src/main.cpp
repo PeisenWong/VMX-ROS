@@ -273,7 +273,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(100); 
+        ros::Rate rate(50); 
         while (ros::ok()) {
             {
                 auto now = std::chrono::steady_clock::now();
