@@ -276,7 +276,7 @@ public:
     }
 
     void controlLoop() {
-        ros::Rate rate(50); 
+        ros::Rate rate(20); 
         while (ros::ok()) {
             {
                 auto now = std::chrono::steady_clock::now();
@@ -348,9 +348,9 @@ public:
                     rawDistRight  = cumDistRight;
                     rawDistBack   = cumDistBack;
 
-                    ABT(&fleft_pos_data, 0.02);
-                    ABT(&fright_pos_data, 0.02);
-                    ABT(&fback_pos_data, 0.02);
+                    ABT(&fleft_pos_data, 0.05);
+                    ABT(&fright_pos_data, 0.05);
+                    ABT(&fback_pos_data, 0.05);
 
                     // v = rw
                     // w = RPM / 60 * 2pi
