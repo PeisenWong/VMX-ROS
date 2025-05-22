@@ -297,7 +297,11 @@ public:
                     final_left = 0;
                     final_right = 0;
                     final_back = 0;
-    
+                    
+                    ABTEstimateInit(&fleft_pos_data);
+                    ABTEstimateInit(&fright_pos_data);
+                    ABTEstimateInit(&fback_pos_data);
+                    
                     // Reset PID state for all wheels
                     pid_left.integral = 0.0;
                     pid_left.prev_error = 0.0;
