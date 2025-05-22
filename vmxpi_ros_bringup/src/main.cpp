@@ -320,6 +320,7 @@ public:
                     // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                     // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
+                    double cumDistLeft = 0, cumDistRight = 0, cumDistBack = 0;
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL = currL - last_left_count;
@@ -336,9 +337,13 @@ public:
                     // x (rev) = delta_ticks / 1464
                     // x(m) = delta_ticks / 1464 * L
                     const double wheelCirc = 2.0 * M_PI * r;
-                    rawDistLeft  = double((dL / TPR) * wheelCirc);
-                    rawDistRight = double((dR / TPR) * wheelCirc);
-                    rawDistBack  = double((dB / TPR) * wheelCirc);
+                    cumDistLeft  += double(dL) / TPR * wheelCirc;
+                    cumDistRight += double(dR) / TPR * wheelCirc;
+                    cumDistBack  += double(dB) / TPR * wheelCirc;
+
+                    rawDistLeft   = cumDistLeft;
+                    rawDistRight  = cumDistRight;
+                    rawDistBack   = cumDistBack;
 
                     ABT(&fleft_pos_data, dt);
                     ABT(&fright_pos_data, dt);
