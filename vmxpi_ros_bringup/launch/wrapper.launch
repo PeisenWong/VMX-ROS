@@ -12,6 +12,9 @@
 	<param name="pid/back/p" value="0.65" />
 	<param name="pid/back/i" value="0.5" />
 	<param name="pid/back/d" value="0.001" />
+	<param name="a" value="0.18" />
+	<param name="b" value="0.22" />
+	<param name="g" value="0.009" />
 
 	<node pkg="vmxpi_ros_bringup" name="main_node" type="main_node" output="screen"/> 
 </launch>

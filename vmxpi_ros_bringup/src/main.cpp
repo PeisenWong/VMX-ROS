@@ -154,6 +154,7 @@ public:
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
         double p_back, i_back, d_back;
+        float a, b, g;
         
         nh->param("pid/left/p", p_left, 1.0);
         nh->param("pid/left/i", i_left, 1.0);
@@ -166,13 +167,15 @@ public:
         nh->param("pid/back/p", p_back, 1.0);
         nh->param("pid/back/i", i_back, 1.0);
         nh->param("pid/back/d", d_back, 0.001);
+
+        nh->param("a", a, 0.8);
+        nh->param("b", b, 0.4);
+        nh->param("g", g, 0.2);
         
         // Re-initialize our PID objects with the fetched parameters
         pid_left = PID(p_left, i_left, d_left);
         pid_right = PID(p_right, i_right, d_right);
         pid_back = PID(p_back, i_back, d_back);
-
-        float a = 0.8, b = 0.4, g = 0.1;
 
         ABTInit(a, b, g,
             &rawDistLeft, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
