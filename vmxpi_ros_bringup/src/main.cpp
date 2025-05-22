@@ -354,7 +354,7 @@ public:
 
                     double vx, vy, vz;
                     {
-                      std::lock_guard<std::mutex> lock(cmd_mutex);
+                      std::lock_guard<std::mutex> lock(command_mutex);
                       vx = cmd_linear_x;
                       vy = cmd_linear_y;
                       vz = cmd_angular_z;
