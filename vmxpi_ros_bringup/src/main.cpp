@@ -63,9 +63,10 @@ void ABTInit(double a, double b, double g,
 
 void ABTEstimateInit(ABT_t *filt)
 {
-    *(filt->pos_output) = 0.0f;
-    *(filt->vel_output) = 0.0f;
-    *(filt->acc_output) = 0.0f;
+    *(filt->input) = 0.0;
+    *(filt->pos_output) = 0.0;
+    *(filt->vel_output) = 0.0;
+    *(filt->acc_output) = 0.0;
 }
 
 void ABT(ABT_t *filt, double dt)
