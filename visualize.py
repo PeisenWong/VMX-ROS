@@ -54,7 +54,7 @@ for ax, (name, (col_t, col_m)) in zip(axes, wheels.items()):
 
     # compute & annotate metrics
     rise, os_, settle = step_metrics(time, meas, target)
-    txt = f"Rise: {rise:.2f}s\nOS: {os_:.1f}%\nSettle: {settle:.2f}s"
+    txt = f"Rise Time: {rise:.2f}s\n%OS: {os_:.1f}%\nSettle Time: {settle:.2f}s"
     ax.text(0.95, 0.10, txt,
             transform=ax.transAxes,
             ha='right', va='bottom',
