@@ -172,7 +172,7 @@ public:
         pid_right = PID(p_right, i_right, d_right);
         pid_back = PID(p_back, i_back, d_back);
 
-        float a = 0.8, b = 0.4, g = 0.2;
+        float a = 0.8, b = 0.4, g = 0.1;
 
         ABTInit(a, b, g,
             &rawDistLeft, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
@@ -345,9 +345,9 @@ public:
                     rawDistRight  = cumDistRight;
                     rawDistBack   = cumDistBack;
 
-                    ABT(&fleft_pos_data, dt);
-                    ABT(&fright_pos_data, dt);
-                    ABT(&fback_pos_data, dt);
+                    ABT(&fleft_pos_data, 0.02);
+                    ABT(&fright_pos_data, 0.02);
+                    ABT(&fback_pos_data, 0.02);
 
                     // v = rw
                     // w = RPM / 60 * 2pi
