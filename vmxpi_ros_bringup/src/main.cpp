@@ -42,14 +42,14 @@ struct PID {
 };
 
 struct ABT_t {
-    float alpha, beta, gamma;
+    double alpha, beta, gamma;
     double *input;
     double *pos_output;
     double *vel_output;
     double *acc_output;
 };
 
-void ABTInit(float a, float b, float g,
+void ABTInit(double a, double b, double g,
     double *ip, double *pos, double *vel, double *acc, ABT_t *filt)
 {
     filt->alpha       = a;
@@ -154,7 +154,7 @@ public:
         double p_left, i_left, d_left;
         double p_right, i_right, d_right;
         double p_back, i_back, d_back;
-        float a, b, g;
+        double a, b, g;
         
         nh->param("pid/left/p", p_left, 1.0);
         nh->param("pid/left/i", i_left, 1.0);
