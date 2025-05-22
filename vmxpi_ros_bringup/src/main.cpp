@@ -109,6 +109,7 @@ private:
     int last_left_count = 0, last_right_count = 0, last_back_count = 0;
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
+    double cumDistLeft = 0, cumDistRight = 0, cumDistBack = 0;
     double r = 0.051;
     std::chrono::steady_clock::time_point last_vel_time;
     std::ofstream rpm_log;
@@ -320,7 +321,6 @@ public:
                     // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                     // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
-                    double cumDistLeft = 0, cumDistRight = 0, cumDistBack = 0;
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL = currL - last_left_count;
