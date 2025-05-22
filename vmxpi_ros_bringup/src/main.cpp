@@ -112,6 +112,7 @@ private:
     double TPR = 1464;
     double cumDistLeft = 0, cumDistRight = 0, cumDistBack = 0;
     double r = 0.051;
+    int first = 0;
     std::chrono::steady_clock::time_point last_vel_time;
     std::ofstream rpm_log;
     std::chrono::steady_clock::time_point start_time;
@@ -327,9 +328,20 @@ public:
 
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
-                    int dL = currL - last_left_count;
-                    int dR = currR - last_right_count;
-                    int dB = currB - last_back_count;
+                    int dL, dR, dB;
+                    if(first == 0)
+                    {
+                        dL = 0;
+                        dR = 0;
+                        dB = 0;
+                        first = 1;
+                    }
+                    else
+                    {
+                        dL = currL - last_left_count;
+                        dR = currR - last_right_count;
+                        dB = currB - last_back_count;
+                    }
                     last_left_count  = currL;
                     last_right_count = currR;
                     last_back_count  = currB;
