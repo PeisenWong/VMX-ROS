@@ -69,6 +69,14 @@ void ABTEstimateInit(ABT_t *filt)
     *(filt->acc_output) = 0.0;
 }
 
+void ABTStop(ABT_t *filt)
+{
+    // *(filt->input) = 0.0;
+    *(filt->pos_output) = *(filt->input);
+    *(filt->vel_output) = 0.0;
+    *(filt->acc_output) = 0.0;
+}
+
 void ABT(ABT_t *filt, double dt)
 {
     double pos_predict = *(filt->pos_output)
@@ -306,6 +314,10 @@ public:
                     pid_right.prev_error = 0.0;
                     pid_back.integral = 0.0;
                     pid_back.prev_error = 0.0;
+
+                    ABTStop(&fleft_pos_data);
+                    ABTStop(&fright_pos_data);
+                    ABTStop(&fback_pos_data);
                 } else {
                     // Calculate the encoder differences since the last cycle
                     // int current_left  = left_count;
