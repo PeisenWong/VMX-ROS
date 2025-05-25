@@ -298,25 +298,6 @@ public:
                     ABTStop(&fright_pos_data);
                     ABTStop(&fback_pos_data);
                 } else {
-                    // Calculate the encoder differences since the last cycle
-                    // int current_left  = left_count;
-                    // int current_right = right_count;
-                    // int current_back  = back_count;
-                    
-                    // int delta_left  = current_left  - last_left_count;
-                    // int delta_right = current_right - last_right_count;
-                    // int delta_back  = current_back  - last_back_count;
-                    
-                    // last_left_count  = current_left;
-                    // last_right_count = current_right;
-                    // last_back_count  = current_back;
-                    
-                    // // Calculate measured RPM for each wheel:
-                    // // RPM = (delta_ticks / TPR) / dt * 60.0
-                    // meas_rpm_left  = (delta_left  / TPR) / dt * 60.0;
-                    // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
-                    // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
-
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL, dR, dB;
@@ -324,11 +305,6 @@ public:
                     dL = currL - last_left_count;
                     dR = currR - last_right_count;
                     dB = currB - last_back_count;
-
-                    ROS_INFO("first-loop counts: currL=%d, lastL=%d, dL:%d | currR=%d, lastR=%d, dR: %d | currB=%d, lastB=%d, dB: %d",
-                        currL, last_left_count, dL,
-                        currR, last_right_count, dR,
-                        currB, last_back_count, dB);
                     
                     last_left_count  = currL;
                     last_right_count = currR;
@@ -340,7 +316,7 @@ public:
                     // x revolution : delta_ticks
                     // x (rev) = delta_ticks / 1464
                     // x(m) = delta_ticks / 1464 * L
-                    const double wheelCirc = 2.0 * 3.14159 * r;
+                    const double wheelCirc = 2.0 * PI * r;
                     cumDistLeft  += dL * wheelCirc / TPR;
                     cumDistRight += dR * wheelCirc / TPR;
                     cumDistBack  += dB * wheelCirc / TPR;
