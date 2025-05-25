@@ -347,6 +347,10 @@ public:
                         dR = 0;
                         dB = 0;
                         first = 1;
+
+                        last_left_count = left_count;
+                        last_right_count = right_count;
+                        last_back_count = back_count;
                     }
                     else
                     {
