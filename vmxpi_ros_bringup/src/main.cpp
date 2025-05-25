@@ -305,14 +305,6 @@ public:
         ros::Rate rate(20); 
         while (ros::ok()) {
             {
-                if (!seen_left || !seen_right || !seen_back) {
-                    ROS_INFO_THROTTLE(1.0, "Waiting for all encoders (L:%d R:%d B:%d)",
-                                      seen_left, seen_right, seen_back);
-                    ros::spinOnce();   // let callbacks run
-                    rate.sleep();
-                    continue;
-                }
-
                 auto now = std::chrono::steady_clock::now();
                 // Compute dt since last velocity update
                 double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
