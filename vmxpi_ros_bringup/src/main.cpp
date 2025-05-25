@@ -371,9 +371,15 @@ public:
                     rawDistRight  = cumDistRight;
                     rawDistBack   = cumDistBack;
 
+                    ROS_INFO("rawDistRight=%.6f, fFRightPos=%.6f, fFRightVel=%.6f, fFRightAcc=%.6f",
+                        rawDistRight, fFRightPos, fFRightVel, fFRightAcc);
+
                     ABT(&fleft_pos_data, 0.05);
                     ABT(&fright_pos_data, 0.05);
                     ABT(&fback_pos_data, 0.05);
+
+                    ROS_INFO("After ABT: fFRightPos=%.6f fFRightVel=%.6f fFRightAcc=%.6f",
+                        fFRightPos, fFRightVel, fFRightAcc);
 
                     // v = rw
                     // w = RPM / 60 * 2pi
