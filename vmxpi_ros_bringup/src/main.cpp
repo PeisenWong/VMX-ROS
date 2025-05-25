@@ -404,7 +404,7 @@ public:
                     if (rpm_log.is_open()) {
                         rpm_log 
                             << elapsed << ","
-                            << target_rpm_left  << "," << meas_rpm_left  << ","`
+                            << target_rpm_left  << "," << meas_rpm_left  << ","
                             << target_rpm_right << "," << meas_rpm_right << ","
                             << target_rpm_back  << "," << meas_rpm_back   << "\n";
                         rpm_log.flush();
