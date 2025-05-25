@@ -400,15 +400,15 @@ public:
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
                     ROS_INFO("---------------------");
 
-                    // double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - start_time).count();
-                    // if (rpm_log.is_open()) {
-                    //     rpm_log 
-                    //         << elapsed << ","
-                    //         << target_rpm_left  << "," << meas_rpm_left  << ","`
-                    //         << target_rpm_right << "," << meas_rpm_right << ","
-                    //         << target_rpm_back  << "," << meas_rpm_back   << "\n";
-                    //     rpm_log.flush();
-                    // }
+                    double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - start_time).count();
+                    if (rpm_log.is_open()) {
+                        rpm_log 
+                            << elapsed << ","
+                            << target_rpm_left  << "," << meas_rpm_left  << ","`
+                            << target_rpm_right << "," << meas_rpm_right << ","
+                            << target_rpm_back  << "," << meas_rpm_back   << "\n";
+                        rpm_log.flush();
+                    }
                 }
                 // Publish motor commands every loop iteration
                 publish_motors();
