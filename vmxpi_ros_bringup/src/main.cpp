@@ -128,7 +128,7 @@ public:
     Robot(ros::NodeHandle* nh)
       : pid_left(1.5, 1.0, 0.001),  // temporary default values; will be updated from params
         pid_right(1.5, 1.0, 0.001),
-        pid_back(1.5, 1.0, 0.001)
+        pid_back(1.5, 1.0, 0.001),
     {
         start_time = std::chrono::steady_clock::now();
         rpm_log.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
