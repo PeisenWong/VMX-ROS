@@ -45,55 +45,39 @@ struct PID {
 
 struct ABT_t {
     double alpha, beta, gamma;
-    double *input;
-    double *pos_output;
-    double *vel_output;
-    double *acc_output;
-};
+    double input;
+    double pos_output;
+    double vel_output;
+    double acc_output;
 
-void ABTInit(double a, double b, double g,
-    double *ip, double *pos, double *vel, double *acc, ABT_t *filt)
-{
-    filt->alpha       = a;
-    filt->beta        = b;
-    filt->gamma       = g;
-    filt->input       = ip;
-    filt->pos_output  = pos;
-    filt->vel_output  = vel;
-    filt->acc_output  = acc;
-}
+    // Constructor (for convenience)
+    ABT_t(double a, double b, double g)
+        : alpha(a), beta(b), gamma(g), input(0.0), pos_output(0.0), vel_output(0.0), acc_output(0.0) {}
+};
 
 void ABTEstimateInit(ABT_t *filt)
 {
-    // *(filt->input) = 0.0;
-    *(filt->pos_output) = 0.0;
-    *(filt->vel_output) = 0.0;
-    *(filt->acc_output) = 0.0;
+    filt->pos_output = 0.0;
+    filt->vel_output = 0.0;
+    filt->acc_output = 0.0;
 }
 
 void ABTStop(ABT_t *filt)
 {
-    // *(filt->input) = 0.0;
-    *(filt->pos_output) = *(filt->input);
-    *(filt->vel_output) = 0.0;
-    *(filt->acc_output) = 0.0;
+    filt->pos_output = filt->input;
+    filt->vel_output = 0.0;
+    filt->acc_output = 0.0;
 }
 
 void ABT(ABT_t *filt, double dt)
 {
-    double pos_predict = *(filt->pos_output)
-                      + dt  * (*(filt->vel_output))
-                      + 0.5f * dt * dt * (*(filt->acc_output));
-    double vel_predict = *(filt->vel_output)
-                      + dt * (*(filt->acc_output));
+    double pos_predict = filt->pos_output + dt * filt->vel_output + 0.5 * dt * dt * filt->acc_output;
+    double vel_predict = filt->vel_output + dt * filt->acc_output;
+    double residual = filt->input - pos_predict;
 
-    double residual = *filt->input - pos_predict;
-
-    *(filt->pos_output) = pos_predict + filt->alpha * residual;
-    *(filt->vel_output) = vel_predict + (filt->beta / dt) * residual;
-    *(filt->acc_output) = *(filt->acc_output)
-                        + (filt->gamma * 0.5f
-                           / (dt * dt)) * residual;
+    filt->pos_output = pos_predict + filt->alpha * residual;
+    filt->vel_output = vel_predict + (filt->beta / dt) * residual;
+    filt->acc_output = filt->acc_output + (filt->gamma * 0.5 / (dt * dt)) * residual;
 }
 
 // Callbacks for Encoder count values
@@ -138,10 +122,6 @@ public:
     PID pid_back;
 
     ABT_t fleft_pos_data, fright_pos_data, fback_pos_data;
-    double rawDistLeft, rawDistRight, rawDistBack;
-    double fFLeftPos, fFLeftVel, fFLeftAcc;
-    double fFRightPos, fFRightVel, fFRightAcc;
-    double fFBackPos, fFBackVel, fFBackAcc;
 
     FILE* rpm_log_fp;
 
@@ -188,19 +168,14 @@ public:
         pid_right = PID(p_right, i_right, d_right);
         pid_back = PID(p_back, i_back, d_back);
 
-        ABTInit(a, b, g,
-            &rawDistLeft, &fFLeftPos, &fFLeftVel, &fFLeftAcc,
-            &fleft_pos_data);
+        // Initialization (simpler, clearer, safer):
+        fleft_pos_data = ABT_t(a, b, g);
+        fright_pos_data = ABT_t(a, b, g);
+        fback_pos_data = ABT_t(a, b, g);
+
+        // Initialize positions clearly
         ABTEstimateInit(&fleft_pos_data);
-
-        ABTInit(a, b, g,
-                &rawDistRight, &fFRightPos, &fFRightVel, &fFRightAcc,
-                &fright_pos_data);
         ABTEstimateInit(&fright_pos_data);
-
-        ABTInit(a, b, g,
-                &rawDistBack, &fFBackPos, &fFBackVel, &fFBackAcc,
-                &fback_pos_data);
         ABTEstimateInit(&fback_pos_data);
 
         set_m_speed = nh->serviceClient<vmxpi_ros::MotorSpeed>("titan/set_motor_speed");
@@ -375,9 +350,9 @@ public:
                     cumDistRight += dR * wheelCirc / TPR;
                     cumDistBack  += dB * wheelCirc / TPR;
 
-                    rawDistLeft   = cumDistLeft;
-                    rawDistRight  = cumDistRight;
-                    rawDistBack   = cumDistBack;
+                    fleft_pos_data.input  = cumDistLeft;
+                    fright_pos_data.input = cumDistRight;
+                    fback_pos_data.input  = cumDistBack;
 
                     ROS_INFO("rawDistRight=%.6f, fFRightPos=%.6f, fFRightVel=%.6f, fFRightAcc=%.6f",
                         rawDistRight, fFRightPos, fFRightVel, fFRightAcc);
@@ -393,17 +368,9 @@ public:
                     // w = RPM / 60 * 2pi
                     // RPM = w * 60 / (2pi)
                     // RPM = (v / r) * 60 / (2pi)
-                    meas_rpm_left  = (fFLeftVel  / r) * 60.0 / (2 * 3.14159);
-                    meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * 3.14159);
-                    meas_rpm_back  = (fFBackVel  / r) * 60.0 / (2 * 3.14159);
-
-                    if(meas_rpm_left > 100 || meas_rpm_right > 100 || meas_rpm_back > 100)
-                    {
-                        ABTStop(&fleft_pos_data);
-                        ABTStop(&fright_pos_data);
-                        ABTStop(&fback_pos_data);
-                        continue;
-                    }
+                    meas_rpm_left  = (fleft_pos_data.vel_output  / r) * 60.0 / (2 * PI);
+                    meas_rpm_right = (fright_pos_data.vel_output / r) * 60.0 / (2 * PI);
+                    meas_rpm_back  = (fback_pos_data.vel_output  / r) * 60.0 / (2 * PI);
 
                     double vx, vy, vz;
                     {
