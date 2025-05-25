@@ -228,6 +228,10 @@ public:
         last_right_count = right_count;
         last_back_count  = back_count;
 
+        // Immediately after ABTEstimateInit
+        ROS_INFO("After init: fFRightPos=%f, fFRightVel=%f, fFRightAcc=%f",
+            fFRightPos, fFRightVel, fFRightAcc);
+
         // Start the control loop
         control_loop_thread = std::thread(&Robot::controlLoop, this);
     }
@@ -301,6 +305,10 @@ public:
                                     std::abs(cmd_linear_y) < 1e-6 &&
                                     std::abs(cmd_angular_z) < 1e-6) ||
                                    (elapsed > COMMAND_TIMEOUT);
+
+                ROS_INFO("Before first loop: fFRightPos=%f, fFRightVel=%f, fFRightAcc=%f",
+                   fFRightPos, fFRightVel, fFRightAcc);
+                           
     
                 if (zeroCommand) {
                     // Stop the robot
