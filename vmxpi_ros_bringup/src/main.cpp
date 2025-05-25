@@ -20,6 +20,7 @@ static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
 bool seen_left = false, seen_right = false, seen_back = false;
+int last_left_count = 0, last_right_count = 0, last_back_count = 0;
 
 struct PID {
     double kp, ki, kd;
@@ -131,7 +132,6 @@ private:
     double target_rpm_left = 0, target_rpm_right = 0, target_rpm_back = 0;
     double meas_rpm_left = 0, meas_rpm_right = 0, meas_rpm_back = 0;
     double final_left = 0, final_right = 0, final_back = 0;
-    int last_left_count = 0, last_right_count = 0, last_back_count = 0;
     const double alpha = 0.1; // Smoothing factor
     double TPR = 1464;
     double cumDistLeft = 0, cumDistRight = 0, cumDistBack = 0;
