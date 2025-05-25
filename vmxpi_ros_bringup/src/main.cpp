@@ -362,10 +362,10 @@ public:
                     // x revolution : delta_ticks
                     // x (rev) = delta_ticks / 1464
                     // x(m) = delta_ticks / 1464 * L
-                    const double wheelCirc = 2.0 * M_PI * r;
-                    cumDistLeft  += double(dL / TPR) * wheelCirc;
-                    cumDistRight += double(dR / TPR) * wheelCirc;
-                    cumDistBack  += double(dB / TPR) * wheelCirc;
+                    const double wheelCirc = 2.0 * 3.14159 * r;
+                    cumDistLeft  += dL * wheelCirc / TPR;
+                    cumDistRight += dR * wheelCirc / TPR;
+                    cumDistBack  += dB * wheelCirc / TPR;
 
                     rawDistLeft   = cumDistLeft;
                     rawDistRight  = cumDistRight;
