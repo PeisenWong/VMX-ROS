@@ -366,19 +366,10 @@ public:
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL, dR, dB;
                     
-                    if(seen_left && seen_right && seen_back)
-                    {
-                        dL = currL - last_left_count;
-                        dR = currR - last_right_count;
-                        dB = currB - last_back_count;
-                    }
-                    else
-                    {
-                        dL = 0;
-                        dR = 0;
-                        dB = 0;
-                        ROS_INFO("Waiting...");
-                    }
+                    dL = currL - last_left_count;
+                    dR = currR - last_right_count;
+                    dB = currB - last_back_count;
+                    
 
                     // 2) convert to **distance** (meters)
                     // L = 2pi*r
