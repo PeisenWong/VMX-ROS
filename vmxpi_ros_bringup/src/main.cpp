@@ -129,6 +129,9 @@ public:
       : pid_left(1.5, 1.0, 0.001),  // temporary default values; will be updated from params
         pid_right(1.5, 1.0, 0.001),
         pid_back(1.5, 1.0, 0.001),
+        fleft_pos_data(0.8, 0.4, 0.2), 
+        fright_pos_data(0.8, 0.4, 0.2),
+        fback_pos_data(0.8, 0.4, 0.2)
     {
         start_time = std::chrono::steady_clock::now();
         rpm_log.open("/home/pi/rpm_log.csv", std::ios::out | std::ios::trunc);
