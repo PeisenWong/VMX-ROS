@@ -19,6 +19,7 @@ static float left_encoder = 0.0, right_encoder = 0.0, back_encoder = 0.0;
 static double left_count = 0.0, right_count = 0.0, back_count = 0.0;
 static double angle, angle_t;
 static const double PI = 3.14159265;
+bool seen_left = false, seen_right = false, seen_back = false;
 
 struct PID {
     double kp, ki, kd;
@@ -97,12 +98,27 @@ void ABT(ABT_t *filt, double dt)
 // Callbacks for Encoder count values
 void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
+   if(!seen_left)
+   {
+    last_left_count = left_count;
+    seen_left = true;
+   }
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
    right_count = msg->data;
+   if(!seen_right)
+   {
+    last_right_count = right_count;
+    seen_right = true;
+   }
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
+   if(!seen_back)
+   {
+    last_back_count = back_count;
+    seen_back = true;
+   }
 }
 
 class Robot {
@@ -341,26 +357,20 @@ public:
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL, dR, dB;
-                    if(first == 0)
-                    {
-                        dL = 0;
-                        dR = 0;
-                        dB = 0;
-                        first = 1;
-
-                        last_left_count = left_count;
-                        last_right_count = right_count;
-                        last_back_count = back_count;
-                    }
-                    else
+                    
+                    if(seen_left && seen_right && seen_back)
                     {
                         dL = currL - last_left_count;
                         dR = currR - last_right_count;
                         dB = currB - last_back_count;
                     }
-                    last_left_count  = currL;
-                    last_right_count = currR;
-                    last_back_count  = currB;
+                    else
+                    {
+                        dL = 0;
+                        dR = 0;
+                        dB = 0;
+                        ROS_INFO("Waiting...");
+                    }
 
                     // 2) convert to **distance** (meters)
                     // L = 2pi*r
