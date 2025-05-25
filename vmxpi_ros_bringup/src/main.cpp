@@ -362,6 +362,9 @@ public:
                     dR = currR - last_right_count;
                     dB = currB - last_back_count;
                     
+                    last_left_count  = currL;
+                    last_right_count = currR;
+                    last_back_count  = currB;
 
                     // 2) convert to **distance** (meters)
                     // L = 2pi*r
