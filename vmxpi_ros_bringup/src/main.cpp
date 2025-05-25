@@ -99,27 +99,27 @@ void ABT(ABT_t *filt, double dt)
 // Callbacks for Encoder count values
 void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
-   if(!seen_left)
-   {
-    last_left_count = left_count;
-    seen_left = true;
-   }
+//    if(!seen_left)
+//    {
+//     last_left_count = left_count;
+//     seen_left = true;
+//    }
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
    right_count = msg->data;
-   if(!seen_right)
-   {
-    last_right_count = right_count;
-    seen_right = true;
-   }
+//    if(!seen_right)
+//    {
+//     last_right_count = right_count;
+//     seen_right = true;
+//    }
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
-   if(!seen_back)
-   {
-    last_back_count = back_count;
-    seen_back = true;
-   }
+//    if(!seen_back)
+//    {
+//     last_back_count = back_count;
+//     seen_back = true;
+//    }
 }
 
 class Robot {
