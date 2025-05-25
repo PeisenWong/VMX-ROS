@@ -389,6 +389,14 @@ public:
                     meas_rpm_right = (fFRightVel / r) * 60.0 / (2 * 3.14159);
                     meas_rpm_back  = (fFBackVel  / r) * 60.0 / (2 * 3.14159);
 
+                    if(meas_rpm_left > 100 || meas_rpm_right > 100 || meas_rpm_back > 100)
+                    {
+                        ABTStop(&fleft_pos_data);
+                        ABTStop(&fright_pos_data);
+                        ABTStop(&fback_pos_data);
+                        continue;
+                    }
+
                     double vx, vy, vz;
                     {
                       std::lock_guard<std::mutex> lock(command_mutex);
