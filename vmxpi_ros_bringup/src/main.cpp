@@ -99,27 +99,12 @@ void ABT(ABT_t *filt, double dt)
 // Callbacks for Encoder count values
 void enc0Callback(const std_msgs::Int32::ConstPtr& msg) {
    left_count = msg->data;
-//    if(!seen_left)
-//    {
-//     last_left_count = left_count;
-//     seen_left = true;
-//    }
 }
 void enc1Callback(const std_msgs::Int32::ConstPtr& msg) {
    right_count = msg->data;
-//    if(!seen_right)
-//    {
-//     last_right_count = right_count;
-//     seen_right = true;
-//    }
 }
 void enc2Callback(const std_msgs::Int32::ConstPtr& msg) {
    back_count = msg->data;
-//    if(!seen_back)
-//    {
-//     last_back_count = back_count;
-//     seen_back = true;
-//    }
 }
 
 class Robot {
@@ -362,10 +347,10 @@ public:
                     dR = currR - last_right_count;
                     dB = currB - last_back_count;
 
-                    ROS_INFO("first-loop counts: currL=%d, lastL=%d | currR=%d, lastR=%d | currB=%d, lastB=%d",
-                        currL, last_left_count,
-                        currR, last_right_count,
-                        currB, last_back_count);
+                    ROS_INFO("first-loop counts: currL=%d, lastL=%d, dL:%d | currR=%d, lastR=%d, dR: %d | currB=%d, lastB=%d, dB: %d",
+                        currL, last_left_count, dL,
+                        currR, last_right_count, dR,
+                        currB, last_back_count, dB);
                     
                     last_left_count  = currL;
                     last_right_count = currR;
