@@ -354,11 +354,6 @@ public:
                     // meas_rpm_right = applyDeadband((delta_right / TPR) / dt * 60.0);
                     // meas_rpm_back  = (delta_back  / TPR) / dt * 60.0;
 
-                    ROS_INFO("first-loop counts: currL=%d, lastL=%d | currR=%d, lastR=%d | currB=%d, lastB=%d",
-                        currL, last_left_count,
-                        currR, last_right_count,
-                        currB, last_back_count);
-                        
                     // 1) delta counts
                     int currL = left_count, currR = right_count, currB = back_count;
                     int dL, dR, dB;
@@ -366,6 +361,11 @@ public:
                     dL = currL - last_left_count;
                     dR = currR - last_right_count;
                     dB = currB - last_back_count;
+
+                    ROS_INFO("first-loop counts: currL=%d, lastL=%d | currR=%d, lastR=%d | currB=%d, lastB=%d",
+                        currL, last_left_count,
+                        currR, last_right_count,
+                        currB, last_back_count);
                     
                     last_left_count  = currL;
                     last_right_count = currR;
