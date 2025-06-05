@@ -379,6 +379,7 @@ public:
                     ROS_INFO("Back wheel  | %9.2f | %12.2f | %8.2f | %8.2f | %10.2f | %10.2f",
                              target_rpm_back, meas_rpm_back, pid_back.prev_error, pid_back.integral,
                              (pid_back.prev_error - pid_back.integral) / dt, output_back);
+                    ROS_INFO("dt: %.2f", dt);
                     ROS_INFO("---------------------");
 
                     double elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(now - start_time).count();
