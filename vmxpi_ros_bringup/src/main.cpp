@@ -321,6 +321,10 @@ public:
             double dt = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_vel_time).count();
             last_vel_time = now;
 
+            if (dt <= 0.0) {
+                dt = 1e-6;  
+            }
+
             // 2) Check if we should stop due to timeout or zero command
             double elapsed_since_cmd = std::chrono::duration_cast<std::chrono::duration<double>>(now - last_cmd_time).count();
             bool zeroCommand = false;
