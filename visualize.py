@@ -53,12 +53,12 @@ for ax, (name, (col_t, col_m)) in zip(axes, wheels.items()):
     ax.grid(True)
 
     # compute & annotate metrics
-    rise, os_, settle = step_metrics(time, meas, target)
-    txt = f"Rise Time: {rise:.2f}s\n%OS: {os_:.1f}%\nSettle Time: {settle:.2f}s"
-    ax.text(0.95, 0.10, txt,
-            transform=ax.transAxes,
-            ha='right', va='bottom',
-            bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7))
+    # rise, os_, settle = step_metrics(time, meas, target)
+    # txt = f"Rise Time: {rise:.2f}s\n%OS: {os_:.1f}%\nSettle Time: {settle:.2f}s"
+    # ax.text(0.95, 0.10, txt,
+    #         transform=ax.transAxes,
+    #         ha='right', va='bottom',
+    #         bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7))
 
 axes[-1].set_xlabel("Time (s)")
 
