@@ -354,9 +354,9 @@ public:
                     holonomicDrive(vx, vy, vz);
     
                     // Compute PID outputs
-                    double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, dt);
-                    double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, dt);
-                    double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, dt);
+                    double output_left  = pid_left.compute(target_rpm_left, meas_rpm_left, 0.05);
+                    double output_right = pid_right.compute(target_rpm_right, meas_rpm_right, 0.05);
+                    double output_back  = pid_back.compute(target_rpm_back, meas_rpm_back, 0.05);
                     
                     const double max_motor_rpm = 160.0;
                     final_left  = output_left  / max_motor_rpm;
