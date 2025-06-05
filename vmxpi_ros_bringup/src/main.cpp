@@ -489,6 +489,9 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "vmxpi_ros_wrapper");
     ros::NodeHandle nh;
 
+    ros::AsyncSpinner spinner(2);
+    spinner.start();
+
     // Instantiate the hardware wrapper (Titan + VMXPi) before Robot
     VMXPi vmx(true, (uint8_t)50);
     TitanDriverROSWrapper titan(&nh, &vmx);
@@ -498,9 +501,6 @@ int main(int argc, char** argv)
     // navXROSWrapper navx(&nh, &vmx);
 
     Robot robot(&nh);
-
-    ros::AsyncSpinner spinner(2);
-    spinner.start();
 
     ros::waitForShutdown();
     ROS_INFO("ROS SHUTDOWN");
